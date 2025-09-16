@@ -1,0 +1,57 @@
+services:
+  # database PostgreSQL
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: msp_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - msp_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # backend -- Django REST API
+  django_api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        # Fix django start before db is ready
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/msp_db
+    volumes:
+      - ./backend:/app
+    networks:
+      - msp_network
+
+  # frontend -- React + Vite
+  react_app:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - msp_network
+
+volumes:
+  postgres_data:
+
+networks:
+  msp_network:
+    driver: bridge
