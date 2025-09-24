@@ -324,7 +324,7 @@ class DataSource(models.Model):
     )
 
     class Meta:
-        db_table = 'data_sources'
+        db_table = 'sources'
         verbose_name = "Source de données"
         verbose_name_plural = "Sources de données"
         ordering = ['source_name']
@@ -376,7 +376,7 @@ class DataFile(models.Model):
     )
 
     class Meta:
-        db_table = 'data_files'
+        db_table = 'files'
         verbose_name = "Fichier de données"
         verbose_name_plural = "Fichiers de données"
         ordering = ['-upload_date']
