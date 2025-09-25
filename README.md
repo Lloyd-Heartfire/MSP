@@ -19,15 +19,13 @@ Assurez-vous que Docker Desktop est bien lancé.
 make init
 ```
 cette commande va :
-## Lancer Docker
-## Effectuer les migrations Django
-## Créer un super utilisateur Django
+- Lancer Docker
+- Effectuer les migrations Django
+- Créer un super utilisateur Django
 
 # Accéder à l'admin
 
 <http://localhost:8000/admin>
-
-identifiants : admin/admin
 
 # Demarrer le projet
 
