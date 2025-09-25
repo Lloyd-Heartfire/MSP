@@ -1,15 +1,14 @@
 init:    ##initialize the project
-    @$(MAKE) stop
-    @docker compose up -d --build
-    @$(MAKE) migrate
-    @docker compose exec  api python3 manage.py shell -c "from django.contrib.auth import get_user_model;User = get_user_model();user = User.objects.get(username='admin');user.set_password('admin');user.save()"
-
+	@$(MAKE) stop
+	@docker compose up -d --build
+	@$(MAKE) migrate
+	@docker compose exec -e DJANGO_SUPERUSER_PASSWORD=admin django_api python manage.py createsuperuser --noinput --email admin@admin.com --username admin
 start:    ## start back + front
-    @docker compose up -d
+	@docker compose up -d
 
 stop:    ## stop all containers
-    @docker compose stop
+	@docker compose stop
 
 migrate: ## apply migrations
-    @docker compose exec  api python3 manage.py makemigrations
-    @docker compose exec  api python3 manage.py migrate
+	@docker compose exec -it django_api python manage.py makemigrations
+	@docker compose exec -it django_api python manage.py migrate
