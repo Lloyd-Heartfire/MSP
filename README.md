@@ -13,8 +13,6 @@ Placez-vous à la racine du projet.
 
 Assurez-vous que Docker Desktop est bien lancé.
 
- :
-
 ```sh
 make init
 ```
