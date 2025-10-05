@@ -195,6 +195,13 @@ class Location(models.Model):
         help_text="Subdivision administrative si disponible"
     )
     
+    admin2_USA = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        verbose_name="Admin2 USA",
+    )
+    
     iso_code = models.CharField(
         max_length=10,
         null=True,
