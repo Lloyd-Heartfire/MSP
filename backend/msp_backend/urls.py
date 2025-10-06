@@ -19,6 +19,13 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
 from .authentication import login, register, profile
+from .views import (
+    get_continents,
+    get_countries,
+    get_states,
+    get_admin2,
+    get_pandemic_data
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -29,5 +36,17 @@ urlpatterns = [
         path('register/', register, name='register'),
         path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),
         path('profile/', profile, name='profile'),
+    ])),
+    
+    #routes pour les endpoints de données pandémiques
+    path('api/', include([
+        #filtres géographique
+        path('continents/', get_continents, name='get_continents'),
+        path('countries/', get_countries, name='get_countries'),
+        path('states/', get_states, name='get_states'),
+        path('admin2/', get_admin2, name='get_admin2'),
+        
+        #récupérer les données
+        path('data/', get_pandemic_data, name='get_pandemic_data'),
     ])),
 ]
