@@ -195,11 +195,17 @@ class Location(models.Model):
         help_text="Subdivision administrative si disponible"
     )
     
+    admin2_usa = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        verbose_name="Admin2 USA",
+    )
+    
     iso_code = models.CharField(
         max_length=10,
         null=True,
         blank=True,
-        unique=True,
         verbose_name="Code ISO"
     )
     
@@ -252,13 +258,6 @@ class Location(models.Model):
         indexes = [
             models.Index(fields=['country', 'province_state'], name='idx_location_hierarchy'),
             models.Index(fields=['who_region'], name='idx_who_region'),
-        ]
-        constraints = [
-            models.UniqueConstraint(
-                fields=['iso_code'], 
-                name='idx_iso_code',
-                condition=models.Q(iso_code__isnull=False)
-            ),
         ]
 
     def __str__(self):
