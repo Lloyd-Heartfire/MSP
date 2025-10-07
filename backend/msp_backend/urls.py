@@ -24,7 +24,8 @@ from .views import (
     get_countries,
     get_states,
     get_admin2,
-    get_pandemic_data
+    get_pandemic_data,
+    download_pandemic_data_csv
 )
 
 urlpatterns = [
@@ -48,5 +49,8 @@ urlpatterns = [
         
         #récupérer les données
         path('data/', get_pandemic_data, name='get_pandemic_data'),
+        
+        #télécharger les données en csv
+        path('data/download/', download_pandemic_data_csv, name='download_pandemic_data_csv'),
     ])),
 ]
