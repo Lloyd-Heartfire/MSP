@@ -136,6 +136,9 @@ input[type="checkbox"] {
     cursor: pointer;
     position: relative;
     transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 input[type="checkbox"]:checked {
@@ -145,10 +148,6 @@ input[type="checkbox"]:checked {
 
 input[type="checkbox"]:checked:after {
     content: '✓';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     color: #FBFBFB;
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-bold);
