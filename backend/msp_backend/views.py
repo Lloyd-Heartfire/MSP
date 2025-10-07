@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Q, Sum
 from django.db.models.functions import TruncMonth
+from django.http import HttpResponse
 from .models import Location, Pandemic, PandemicData
 from .serializers import (
     ContinentSerializer,
@@ -15,6 +16,7 @@ from .serializers import (
 )
 from collections import defaultdict
 from datetime import datetime
+import csv
 
 
 @api_view(['GET'])
@@ -348,3 +350,142 @@ def build_chartjs_response(aggregated_data, metrics, pandemic_name):
         'ordonne': ordonne,
         'data': detailed_data
     }
+
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+# méthode ppour télécharger les données en csv
+def download_pandemic_data_csv(request):
+    serializer = DataRequestSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    data = serializer.validated_data
+    
+    #récupérer la pandémie
+    try:
+        pandemic = Pandemic.objects.get(pandemic_name=data['pandemie'])
+    except Pandemic.DoesNotExist:
+        return Response(
+            {'error': f'pandémie "{data["pandemie"]}" introuvable'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    #construction du query (on garde la meme logique que pour get_pandemic_data)
+    queryset = PandemicData.objects.filter(
+        pandemic=pandemic,
+        observation_date__gte=data['startDate'],
+        observation_date__lte=data['endDate']
+    )
+    
+    # filtres géographiques
+    location_filter = Q()
+    filter_applied = None
+    
+    #priorité -- admin2
+    admin2_list = data.get('admin2', [])
+    if admin2_list and admin2_list[0] not in ['world', '*']:
+        admin2_normalized = [a.replace('_', ' ').title() for a in admin2_list]
+        location_filter = Q(location__admin2_usa__in=admin2_normalized)
+        filter_applied = 'admin2'
+    
+    #priorité -- states
+    elif not filter_applied:
+        states_list = data.get('states', [])
+        if states_list and states_list[0] not in ['world', '*']:
+            states_normalized = [s.replace('_', ' ').title() for s in states_list]
+            location_filter = Q(location__province_state__in=states_normalized)
+            filter_applied = 'states'
+    
+    #priorité -- countries
+    if not filter_applied:
+        countries_list = data.get('countries', [])
+        if countries_list and countries_list[0] not in ['world', '*']:
+            countries_normalized = [c.replace('_', ' ').title() for c in countries_list]
+            location_filter = Q(location__country__in=countries_normalized)
+            filter_applied = 'countries'
+    
+    #priorité -- continents
+    if not filter_applied:
+        continents_list = data.get('continents', [])
+        if continents_list and continents_list[0] not in ['world', '*']:
+            continents_normalized = [c.replace('_', ' ').title() for c in continents_list]
+            location_filter = Q(location__continent__in=continents_normalized)
+            filter_applied = 'continents'
+    
+    #on applique le filtre
+    if filter_applied:
+        queryset = queryset.filter(location_filter)
+    
+    #agrégation mensuelle (pour le moment uniquement mensuelle)
+    if data['granularity'] == 'monthly':
+        aggregated = queryset.annotate(
+            #truncMonth pour grouper par mois
+            period=TruncMonth('observation_date')
+        ).values(
+            'period',
+            'location__continent',
+            'location__country',
+            'location__province_state',
+            'location__admin2_usa',
+            'location__population',
+            'location__who_region'
+            #ajoute des champs utiles
+        ).annotate(
+            total_cases=Sum('total_cases'),
+            new_cases=Sum('new_cases'),
+            total_deaths=Sum('total_deaths'),
+            new_deaths=Sum('new_deaths'),
+            total_recovered=Sum('total_recovered')
+        ).order_by('period', 'location__country')
+        
+        #créer le CSV
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="pandemic_data_{pandemic.pandemic_name}_{data["startDate"]}_{data["endDate"]}.csv"'
+        
+        writer = csv.writer(response)
+        
+        #nom des colonnes du CSV
+        writer.writerow([
+            'Période',
+            'Pandémie',
+            'Continent',
+            'Pays',
+            'Province/État',
+            'Admin2 (USA)',
+            'Région OMS',
+            'Population',
+            'Cas totaux',
+            'Nouveaux cas',
+            'Décès totaux',
+            'Nouveaux décès',
+            'Guérisons totales'
+        ])
+        
+        # on complète les lignes du CSV
+        for row in aggregated:
+            writer.writerow([
+                row['period'].strftime('%Y-%m'),
+                pandemic.pandemic_name,
+                row['location__continent'] or '',
+                row['location__country'] or '',
+                row['location__province_state'] or '',
+                row['location__admin2_usa'] or '',
+                row['location__who_region'] or '',
+                row['location__population'] or 0,
+                row['total_cases'] or 0,
+                row['new_cases'] or 0,
+                row['total_deaths'] or 0,
+                row['new_deaths'] or 0,
+                row['total_recovered'] or 0
+            ])
+            #on retourne le fichier
+        return response
+    
+    else:
+        #a voir si on implemente le mensuel et le daily par la suite
+        return Response(
+            {'error': 'granularité daily/weekly pas encore implémentée'},
+            status=status.HTTP_501_NOT_IMPLEMENTED
+        )
