@@ -25,6 +25,10 @@ cette commande va :
 
 <http://localhost:8000/admin>
 
+# Accéder à la page front
+
+<http://localhost:5173>
+
 # Demarrer le projet
 
 ```sh
