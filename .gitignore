@@ -20,3 +20,4 @@ backend/msp_backend/__pycache__/urls.cpython-311.pyc
 backend/msp_backend/__pycache__/wsgi.cpython-311.pyc
 backend/msp_backend/__pycache__/settings.cpython-311.pyc
 backend/msp_backend/__pycache__/__init__.cpython-311.pyc
+backend/msp_backend/etl/UID_ISO_FIPS_LookUp_Table.csv
