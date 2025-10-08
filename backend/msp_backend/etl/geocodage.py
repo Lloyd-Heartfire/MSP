@@ -43,7 +43,7 @@ reverse = RateLimiter(geolocator.reverse, min_delay_seconds=2, max_retries=3, er
 def geocode_coordinates(lat, lon, max_attempts=3):
     #on skip si on il manque la lat. ou long.
     if pd.isna(lat) or pd.isna(lon):
-        return None, None, None
+        return None, None, None, None
     
     #on tente jusqu'a 3 fois en cas d'erreur
     for attempt in range(max_attempts):
@@ -58,26 +58,50 @@ def geocode_coordinates(lat, lon, max_attempts=3):
                 state_new = address.get('state') or address.get('province') or address.get('region')
                 #extraire country
                 country_new = address.get('country')
+                
 
-                #j'ajoute iso3 plus tard
-                return city_new, state_new, country_new
+                #ajout pout extraire iso3
+                iso3_new = address.get('country_code')
+                if iso3_new:
+                    iso3_new = iso3_new.upper()
+                
+                return city_new, state_new, country_new, iso3_new
             else:
-                return None, None, None
+                return None, None, None, None
         
         except Exception as e:
                 print(f"échec sur ({lat}, {lon}): {e}")
-                return None, None, None
-    return None, None, None
+                return None, None, None, None
+    return None, None, None, None
 
 #appliquer le géocodage sur chaque ligne
-print("\nprocess, merci de bien vouloir patienter .........(prendre café si besoin)")
+print("\nprocess en cours ,merci de bien vouloir patienter .........(prendre café si besoin)")
 
 #on appel les infos de Geopy
 for idx, row in df_geocode.iterrows():
-    city_new, state_new, country_new = geocode_coordinates(row['Lat'], row['Long_'])
+    city_new, state_new, country_new, iso3_new = geocode_coordinates(row['Lat'], row['Long_'])
     df_geocode.at[idx, 'city_New'] = city_new
     df_geocode.at[idx, 'Province_State_New'] = state_new
     df_geocode.at[idx, 'Country_Region_New'] = country_new
+    df_geocode.at[idx, 'iso3_New'] = iso3_new
 
 print("\ngéocodage fini")
 print(df_geocode.head(50))
+
+#merge sur iso3, lat, long_
+print("\nmerge des dataframes...")
+df_final = df.merge(
+    df_geocode[['iso3', 'Lat', 'Long_', 'city_New', 'Province_State_New', 'Country_Region_New', 'iso3_New']],
+    on=['iso3', 'Lat', 'Long_'],
+    how='left'
+)
+
+print("\nresultat du merge:")
+print(df_final.head(50))
+print(f"\nnbr lignes final: {len(df_final)}")
+print(f"colonnes final: {list(df_final.columns)}")
+
+#export en csv
+output_file = 'geocoded_data.csv'
+df_final.to_csv(output_file, index=False)
+print(f"\n nom fichier out : {output_file}")
