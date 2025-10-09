@@ -1,0 +1,49 @@
+/* Import des styles globaux */
+@import '../styles/globals.css';
+
+.login-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg) var(--spacing-xxl);
+  background: var(--card-bg);
+  border-top: 1px solid var(--border-color);
+  min-height: 70px;
+  width: 100%;
+  position: relative;
+  font-family: var(--font-family);
+}
+
+.footer-text {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+}
+
+.footer-logo img,
+.footer-logo-right img {
+  color: var(--who-blue);
+  width: 40px;
+  height: 40px;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .login-footer {
+    padding: var(--spacing-md);
+  }
+  
+  .footer-text {
+    font-size: var(--font-size-xs);
+  }
+}
+
+@media (min-width: 1024px) {
+  .login-footer {
+    padding: var(--spacing-xl) var(--spacing-xxl);
+  }
+
+  .footer-text {
+    font-size: var(--font-size-md);
+  }
+}
