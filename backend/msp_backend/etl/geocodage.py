@@ -18,7 +18,7 @@ def iso2_to_iso3(iso2_code):
 
 #chargement du csv
 #placer dans le même dossier pour le moment
-df = pd.read_csv('UID_ISO_FIPS_LookUp_Table.csv')
+df = pd.read_csv('cleaned_location.csv')
 
 #renommer admin2 en city
 df.rename(columns={'Admin2': 'city'}, inplace=True)
@@ -97,13 +97,14 @@ for idx, row in df_geocode.iterrows():
 print("\ngéocodage fini")
 print(df_geocode.head(50))
 
-#merge sur iso3, lat, long_
-print("\nmerge des dataframes...")
-df_final = df.merge(
-    df_geocode[['iso3', 'Lat', 'Long_', 'city_New', 'Province_State_New', 'Country_Region_New', 'iso3_New']],
-    on=['iso3', 'Lat', 'Long_'],
-    how='left'
-)
+#ajouter directement les colonnes géocodées au dataframe original
+#car ils gardent le même index, et cela nous evité les problèmes de doublons du au merge
+print("\najout des colonnes géocodées...")
+df['city_New'] = df_geocode['city_New']
+df['Province_State_New'] = df_geocode['Province_State_New']
+df['Country_Region_New'] = df_geocode['Country_Region_New']
+df['iso3_New'] = df_geocode['iso3_New']
+df_final = df
 
 print("\nresultat du merge:")
 print(df_final.head(50))
