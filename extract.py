@@ -8,7 +8,7 @@ repo_url = "https://github.com/CSSEGISandData/COVID-19.git"
 clone_dir = "/home/UIMM/project/MSP/Covid-19_github"
 folder_to_get = "csse_covid_19_data/csse_covid_19_daily_reports"
 
-# Remove file if it already doesn't exist
+# Remove file if it already exist
 def remove_readonly(func, path, excinfo):
     os.chmod(path, stat.S_IWRITE)
     func(path)
@@ -30,7 +30,7 @@ python_path = "/usr/bin/python3"
 script_path = "/home/UIMM/project/MSP/extract.py"
 log_path = "/home/UIMM/project/MSP/extract.log"
 
-# Every beginning of each, we use a cron
+# Every beginning of each month, we use a cron
 cron_line = f"0 0 1 * * {python_path} {script_path} >> {log_path} 2>&1"
 
 # Recover existing crons
