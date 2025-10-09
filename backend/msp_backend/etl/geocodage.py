@@ -2,6 +2,19 @@ import pandas as pd
 from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
 import time
+import pycountry
+
+#fonction pour psser l'iso2 obtenue avec GeoPy en iso3
+def iso2_to_iso3(iso2_code):
+    #si vide on laisse vide
+    if not iso2_code:
+        return None
+    try:
+        #conversion iso2 to iso3 avec pycountry
+        country = pycountry.countries.get(alpha_2=iso2_code.upper())
+        return country.alpha_3 if country else None
+    except:
+        return None
 
 #chargement du csv
 #placer dans le même dossier pour le moment
@@ -58,12 +71,10 @@ def geocode_coordinates(lat, lon, max_attempts=3):
                 state_new = address.get('state') or address.get('province') or address.get('region')
                 #extraire country
                 country_new = address.get('country')
-                
 
-                #ajout pout extraire iso3
-                iso3_new = address.get('country_code')
-                if iso3_new:
-                    iso3_new = iso3_new.upper()
+                #recupére iso2 (car ne fournit pas iso3) et convertir en iso3 avec la fonction en début de code qui utilise pycountry
+                iso2_code = address.get('country_code')
+                iso3_new = iso2_to_iso3(iso2_code)
                 
                 return city_new, state_new, country_new, iso3_new
             else:
