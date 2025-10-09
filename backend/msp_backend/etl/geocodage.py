@@ -43,9 +43,7 @@ print("\ndataframe prêt pour le géocodage:")
 print(df_geocode.head(10))
 print(f"colonnes finales: {list(df_geocode.columns)}")
 
-#les 50 premier lignes pour test 
-df_geocode = df_geocode.head(50).copy()
-print(f"\ntest sur les {len(df_geocode)} premières lignes uniquement")
+print(f"\ntravail sur les : {len(df_geocode)} lignes")
 
 #time out au cas ou
 geolocator = Nominatim(user_agent="msp_pandemic_geocoder", timeout=10)
