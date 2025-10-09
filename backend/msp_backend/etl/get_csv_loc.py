@@ -4,7 +4,7 @@ import os
 import subprocess
 
 # ========================================
-# GET CSV FILE FROM GITHUB
+# GET LOCATIONS CSV FILE FROM GITHUB
 # ========================================
 
 def get_csv_from_github():
@@ -37,6 +37,35 @@ def get_csv_from_github():
 
 # Execute the function to get the CSV file
 get_csv_from_github()
+
+# ========================================
+# GET WHO REGIONS CSV FILE FROM OURWORLDINDATA
+# ========================================
+
+def get_who_regions_from_owid():
+    """Get WHO Regions CSV file from Our World in Data"""
+
+    # File details
+    file_name = "who-regions.csv"
+    # file_url = f"https://ourworldindata.org/grapher/who-regions.csv?v=1&csvType=full&useColumnShortNames=true"
+
+    try:
+        # Read the CSV file directly from the URL
+        # df_who_regions = pd.read_csv(file_url)
+        df_who_regions = pd.read_csv("who-regions.csv")
+        print(f"File '{file_name}' successfully retrieved from OWID")
+        print(df_who_regions.info())
+
+        # Save as a temporary dataframe for next steps
+        # A Pickle file is a serialized binary file format used to store Python objects, including pandas DataFrames. It is more efficient for saving and loading large datasets compared to CSV.
+        df_who_regions.to_pickle("who_regions_temp_data.pkl")
+        print("Data saved in who_regions_temp_data.pkl")    
+
+    except Exception as e:
+        print(f"Error retrieving file '{file_name}': {e}")    
+
+# Execute the function to get the CSV file
+get_who_regions_from_owid()
 
 # ========================================
 # CRON AUTOMATION (execute only once)
