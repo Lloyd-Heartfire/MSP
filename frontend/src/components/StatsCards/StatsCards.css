@@ -1,0 +1,92 @@
+/* Cards container */
+.stats-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xxl);
+    animation: fadeIn var(--transition-medium);
+}
+
+/* Individual card */
+.stats-card {
+    background-color: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    transition: all var(--transition-medium);
+    position: relative;
+    overflow: hidden;
+}
+
+.stats-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    transition: height var(--transition-fast);
+}
+
+.stats-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px var(--shadow-hover);
+}
+
+.stats-card:hover::before {
+    height:6px;
+}
+
+/* Card title */
+.stats-new-cases {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    color: var(--stat-new-cases);
+    margin: 0;
+}
+
+.stats-total-cases {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    color: var(--stat-total-cases);
+    margin: 0;
+}
+
+.stats-new-deaths {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    color: var(--stat-new-deaths);
+    margin: 0;
+}
+
+.stats-total-deaths {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    color: var(--stat-total-deaths);
+    margin: 0;
+}
+
+.stats-active-cases {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    color: var(--stat-active-cases);
+    margin: 0;
+}
+
+.stats-total-recovered {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    color: var(--stat-total-recovered);
+    margin: 0;
+}
+
+/* Card value */
+.stats-card-value {
+    font-size: var(--font-size-huge);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0;
+}
