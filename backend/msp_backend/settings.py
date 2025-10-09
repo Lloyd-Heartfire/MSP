@@ -145,6 +145,17 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
     ],
+    #limitation des appels pour pas cramer les serveurs
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',  #pour les moldus cest 100 requetes par heure max
+        'user': '1000/hour',  #pour les users authentifiés 1000 par heure ca laisse de la marge
+        'burst': '20/minute',  #limite
+        'data_api': '50/hour',  #limite pour la method get_pandemics_data
+    },
 }
 
 # JWT Configuration

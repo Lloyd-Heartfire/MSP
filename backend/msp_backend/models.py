@@ -173,8 +173,9 @@ class Pandemic(models.Model):
 
 # model for Locations
 class Location(models.Model):
+    #passage en varchar100 pour avoir plus de marge sur les noms longs
     continent = models.CharField(
-        max_length=50,
+        max_length=100,
         null=False,
         blank=False,
         verbose_name="Continent"
@@ -195,11 +196,12 @@ class Location(models.Model):
         help_text="Subdivision administrative si disponible"
     )
     
-    admin2_usa = models.CharField(
-        max_length=50,
+    #changement de admin2_usa vers city
+    city = models.CharField(
+        max_length=100,
         null=True,
         blank=True,
-        verbose_name="Admin2 USA",
+        verbose_name="Ville",
     )
     
     iso_code = models.CharField(
@@ -234,7 +236,7 @@ class Location(models.Model):
     )
     
     who_region = models.CharField(
-        max_length=50,
+        max_length=100,
         null=True,
         blank=True,
         verbose_name="Région WHO"
@@ -269,7 +271,7 @@ class Location(models.Model):
     @property
     def full_location(self):
         #localisation pays province
-        parts = [self.continent, self.country]
+        parts = [self.who_region if self.who_region else self.continent, self.country]
         if self.province_state:
             parts.append(self.province_state)
         return " > ".join(parts)
