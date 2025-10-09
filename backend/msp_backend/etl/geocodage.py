@@ -18,10 +18,7 @@ def iso2_to_iso3(iso2_code):
 
 #chargement du csv
 #placer dans le même dossier pour le moment
-df = pd.read_csv('cleaned_location.csv')
-
-#renommer admin2 en city
-df.rename(columns={'Admin2': 'city'}, inplace=True)
+df = pd.read_csv('cleaned_locations.csv')
 
 #afficher les premières lignes pour vérifier
 print("donnée csv avant:")
@@ -30,13 +27,13 @@ print(f"nbr de ligne: {len(df)}")
 print(f" nom colonne: {list(df.columns)}")
 
 #préparer les colonnes pour le géocodage
-df_geocode = df[['iso3', 'city', 'Province_State', 'Country_Region', 'Lat', 'Long_']].copy()
+df_geocode = df[['iso3', 'city', 'province_state', 'country_region', 'latitude', 'longitude']].copy()
 
 # ajouter les colonnes _new
-df_geocode['city_New'] = None
-df_geocode['Province_State_New'] = None
-df_geocode['Country_Region_New'] = None
-df_geocode['iso3_New'] = None
+df_geocode['city_new'] = None
+df_geocode['province_state_new'] = None
+df_geocode['country_region_new'] = None
+df_geocode['iso3_new'] = None
 
 #afficher le dataframe préparé
 print("\ndataframe prêt pour le géocodage:")
@@ -88,11 +85,11 @@ print("\nprocess en cours ,merci de bien vouloir patienter .........(prendre caf
 
 #on appel les infos de Geopy
 for idx, row in df_geocode.iterrows():
-    city_new, state_new, country_new, iso3_new = geocode_coordinates(row['Lat'], row['Long_'])
-    df_geocode.at[idx, 'city_New'] = city_new
-    df_geocode.at[idx, 'Province_State_New'] = state_new
-    df_geocode.at[idx, 'Country_Region_New'] = country_new
-    df_geocode.at[idx, 'iso3_New'] = iso3_new
+    city_new, state_new, country_new, iso3_new = geocode_coordinates(row['latitude'], row['longitude'])
+    df_geocode.at[idx, 'city_new'] = city_new
+    df_geocode.at[idx, 'province_state_new'] = state_new
+    df_geocode.at[idx, 'country_region_new'] = country_new
+    df_geocode.at[idx, 'iso3_new'] = iso3_new
 
 print("\ngéocodage fini")
 print(df_geocode.head(50))
@@ -100,10 +97,10 @@ print(df_geocode.head(50))
 #ajouter directement les colonnes géocodées au dataframe original
 #car ils gardent le même index, et cela nous evité les problèmes de doublons du au merge
 print("\najout des colonnes géocodées...")
-df['city_New'] = df_geocode['city_New']
-df['Province_State_New'] = df_geocode['Province_State_New']
-df['Country_Region_New'] = df_geocode['Country_Region_New']
-df['iso3_New'] = df_geocode['iso3_New']
+df['city_new'] = df_geocode['city_new']
+df['province_state_new'] = df_geocode['province_state_new']
+df['country_region_new'] = df_geocode['country_region_new']
+df['iso3_new'] = df_geocode['iso3_new']
 df_final = df
 
 print("\nresultat du merge:")
