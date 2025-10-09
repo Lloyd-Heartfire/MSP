@@ -47,4 +47,4 @@ def get_covid():
     else:
         print("La tâche cron existe déjà.")
 
-get_covid
+get_covid()
