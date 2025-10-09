@@ -53,9 +53,9 @@ def check_covid():
     df_final = pd.concat(dfs, ignore_index=True)
 
     # Save the final CSV
-    df_final.to_csv("covid_19.csv", index=False)
+    df_final.to_csv("covid/covid_19.csv", index=False)
 
     print("CSV created : covid_19.csv")
-    
-check_covid()
+
+# check_covid()
 
