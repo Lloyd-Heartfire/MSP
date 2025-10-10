@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './Login.css';
-import Header from './Header/Header.jsx';
-import Footer from './Footer/Footer.jsx';
+import Header from '../Header/Header.jsx';
+import Footer from '../Footer/Footer.jsx';
 
 const Login = () => {
   const [email, setEmail] = useState('');
