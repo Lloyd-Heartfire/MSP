@@ -199,7 +199,7 @@ class Location(models.Model):
         max_length=100,
         null=True,
         blank=True,
-        verbose_name="City",
+        verbose_name="Ville",
     )
     
     iso_code = models.CharField(
@@ -269,7 +269,7 @@ class Location(models.Model):
     @property
     def full_location(self):
         #localisation pays province
-        parts = [self.country]
+        parts = [self.who_region if self.who_region else self.continent, self.country]
         if self.province_state:
             parts.append(self.province_state)
         if self.city:
