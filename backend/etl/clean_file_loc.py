@@ -20,23 +20,21 @@ def clean_locations():
     locations["latitude"] = pd.to_numeric(locations["latitude"], errors="coerce")
     locations["longitude"] = pd.to_numeric(locations["longitude"], errors="coerce")
 
+    # Standardize iso3 to uppercase
+    locations["iso3"] = locations["iso3"].str.upper()
+
     # Check duplicates in locations based on latitude and longitude
     loc_duplicates = locations[locations.duplicated(subset=["latitude", "longitude"], keep=False)]
     print(f"Number of duplicate records based on latitude and longitude: {len(loc_duplicates)}")
     if not loc_duplicates.empty:
         print(loc_duplicates)  
-    # Remove duplicates 
-    locations = locations.drop_duplicates()
-
-    # # Remove *, _, and other punctuation (keep -, spaces, apostrophes, parentheses, commas) in columns city,  province_state, country_region
-    # locations["city"] = locations["city"].str.replace(r"[^\w\s\-\(\)',]", "", regex=True).str.strip()
-    # locations["province_state"] = locations["province_state"].str.replace(r"[^\w\s\-\(\)',]", "", regex=True).str.strip   ()
-    # locations["country_region"] = locations["country_region"].str.replace(r"[^\w\s\-\(\)',]", "", regex=True).str.strip   ()
-
-    # # Remove double spaces and leading/trailing spaces
-    # locations["city"] = locations["city"].str.replace(r'\s+', ' ', regex=True).str.strip()
-    # locations["province_state"] = locations["province_state"].str.replace(r'\s+', ' ', regex=True).str.strip()
-    # locations["country_region"] = locations["country_region"].str.replace(r'\s+', ' ', regex=True).str.strip()
+    # Remove duplicates in locations based on latitude and longitude
+    locations = locations.drop_duplicates(subset=["latitude", "longitude"], keep="first")
+    # # Check removed duplicates 
+    # loc_duplicates = locations[locations.duplicated(subset=["latitude", "longitude"], keep=False)]
+    # print(f"Number of duplicate records based on latitude and longitude after removing duplicates: {len(loc_duplicates)}")
+    # if not loc_duplicates.empty:
+    #     print(loc_duplicates)
 
     print("Cleaned locations:")
     print(locations.info())
@@ -55,18 +53,8 @@ def clean_who_regions():
     print("File 'df_referentiel_who_regions.pkl' loaded.")
     print(who_regions.info())
 
-    # Check duplicates in who_regions based on iso3
-    who_duplicates = who_regions[who_regions.duplicated(subset=["iso3"], keep=False)]
-    print(f"Number of duplicate records in WHO regions based on iso3: {len(who_duplicates)}")
-    if not who_duplicates.empty:
-        print(who_duplicates)
-    # Remove duplicates 
-    who_regions = who_regions.drop_duplicates()
-
-    # Remove " (WHO)" from column who_region if exists
-    who_regions["who_region"] = who_regions["who_region"].str.replace(" (WHO)", "", regex=False)
-    print("Cleaned WHO regions:")
-    print(who_regions["who_region"].unique())
+    # Standardize iso3 to uppercase
+    who_regions["iso3"] = who_regions["iso3"].str.upper()
 
     # Remove *, _, and other punctuation (keep -, spaces, apostrophes, parentheses, commas) in columns who_region, iso3
     who_regions["who_region"] = who_regions["who_region"].str.replace(r"[^\w\s\-\(\)',]", "", regex=True).str.strip()
@@ -74,7 +62,25 @@ def clean_who_regions():
 
     # Remove double spaces and leading/trailing spaces
     who_regions["who_region"] = who_regions["who_region"].str.replace(r'\s+', ' ', regex=True).str.strip()
-    who_regions["iso3"] = who_regions["iso3"].str.replace(r'\s+', ' ', regex=True).str.strip()    
+    who_regions["iso3"] = who_regions["iso3"].str.replace(r'\s+', ' ', regex=True).str.strip()  
+
+    # Check duplicates in who_regions based on iso3
+    who_duplicates = who_regions[who_regions.duplicated(subset=["iso3"], keep=False)]
+    print(f"Number of duplicate records in WHO regions based on iso3: {len(who_duplicates)}")
+    if not who_duplicates.empty:
+        print(who_duplicates)
+    # Remove duplicates in who_regions based on iso3
+    who_regions = who_regions.drop_duplicates(subset=["iso3"], keep="first")
+    # # Check removed duplicates
+    # who_duplicates = who_regions[who_regions.duplicated(subset=["iso3"], keep=False)]
+    # print(f"Number of duplicate records in WHO regions based on iso3 after removing duplicates: {len(who_duplicates)}")
+    # if not who_duplicates.empty:
+    #     print(who_duplicates)
+
+    # Remove " (WHO)" from column who_region if exists
+    who_regions["who_region"] = who_regions["who_region"].str.replace(" (WHO)", "", regex=False)
+    print("Cleaned WHO regions:")
+    print(who_regions["who_region"].unique())  
 
     print("Cleaned WHO regions:")
     print(who_regions.info())
@@ -99,14 +105,11 @@ def who_region_mapping(locations, who_regions):
     print("Locations with WHO regions mapped:")
     print(locations.info())
 
-    return locations
+    # Save cleaned file
+    locations.to_csv("full_clean_locations.csv", index=False, encoding="utf-8")
+    print(f"\n Cleaned locations file saved: full_clean_locations.csv")
 
-# # Final column order to match DB schema
-# column_order = [
-#     "continent", "country_region", "province_state", "city", "iso3",
-#     "latitude", "longitude", "population", "who_region"
-# ]
-# locations = locations.reindex(columns=column_order)
+    return locations
 
 # ======================================
 # PIPELINE EXECUTION
@@ -116,12 +119,3 @@ if __name__ == "__main__":
     locations = clean_locations()
     who_regions = clean_who_regions()
     locations = who_region_mapping(locations, who_regions)
-
-    # Save cleaned file
-    locations.to_csv("full_clean_locations.csv", index=False, encoding="utf-8")
-    print(f"\n Cleaned locations file saved: full_clean_locations.csv")
-
-# ======================================
-# GEOCODING
-# ======================================
-# To be implemented in a separate file
