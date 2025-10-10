@@ -1,6 +1,7 @@
 import pandas as pd
 
 def clean_covid():
+    
     # ------------------------------
     # Step 1 : Load covid-19 CSV
     # ------------------------------
