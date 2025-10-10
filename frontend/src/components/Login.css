@@ -29,7 +29,7 @@
   background: var(--card-bg);
   border-radius: var(--radius-lg);
   border: 2px solid var(--border-color);
-  padding: var(--spacing-xxl) var(--spacing-xl);
+  padding: var(--spacing-xxl) var(--spacing-xxl);
   width: 100%;
   max-width: 400px;
   text-align: center;
@@ -47,7 +47,7 @@
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-xl);
 }
 
 .form-input {
@@ -60,6 +60,8 @@
   font-size: var(--font-size-md);
   transition: var(--transition-fast);
   font-family: var(--font-family);
+  margin-top: var(--spacing-xl);
+
 }
 
 .form-input:focus {
@@ -96,7 +98,7 @@
 .signup-link {
   margin-top: var(--spacing-xl);
   color: var(--text-muted);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-lg);
 }
 
 .signup-link a {

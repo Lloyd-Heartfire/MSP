@@ -1,5 +1,5 @@
 /* Import des styles globaux */
-@import '../styles/globals.css';
+@import '../../styles/globals.css';
 
 .login-footer {
   display: flex;
@@ -7,11 +7,13 @@
   align-items: center;
   padding: var(--spacing-lg) var(--spacing-xxl);
   background: var(--card-bg);
-  border-top: 1px solid var(--border-color);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
   min-height: 70px;
-  width: 100%;
+  width: 95%;
   position: relative;
   font-family: var(--font-family);
+  margin: 0 auto 20px auto; /* mettre au milieu entre left and right */
 }
 
 .footer-text {
