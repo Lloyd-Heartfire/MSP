@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './Header.css';
-import ThemeToggle from './ThemeToggle';
+import ThemeToggle from '../ThemeToggle/ThemeToggle';
 
 const Header = () => {
   return (
