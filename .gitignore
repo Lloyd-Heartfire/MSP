@@ -20,3 +20,7 @@ backend/msp_backend/__pycache__/urls.cpython-311.pyc
 backend/msp_backend/__pycache__/wsgi.cpython-311.pyc
 backend/msp_backend/__pycache__/settings.cpython-311.pyc
 backend/msp_backend/__pycache__/__init__.cpython-311.pyc
+backend/etl/df_referentiel_locations.pkl
+backend/etl/df_referentiel_who_regions.pkl
+backend/etl/temp_data.pkl
+backend/etl/who_regions_temp_data.pkl
