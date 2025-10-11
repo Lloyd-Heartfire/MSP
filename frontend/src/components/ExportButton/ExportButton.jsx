@@ -1,4 +1,4 @@
-import './ExportButton.css'
+import './ExportButton.css' 
 
 function ExportButton() {
   const handleExport = () => {
@@ -12,7 +12,7 @@ function ExportButton() {
 
   return (
     <button className="export-button" onClick={handleExport}>
-      Export 
+      <img src="./src/assets/export.png" width="20" alt="icon" /> Export
     </button>
   )
 }

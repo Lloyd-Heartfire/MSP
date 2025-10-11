@@ -1,0 +1,132 @@
+/* Import des styles globaux */
+@import '../../styles/globals.css';
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg) var(--spacing-xxl);
+  background: var(--card-bg);
+  min-height: 80px;
+  width: 100%;
+  position: relative;
+  font-family: var(--font-family);
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.org-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.who-title,
+.who-subtitle {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--who-blue);
+  line-height: 1.2;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+}
+
+/* Groupe thème avec soleil, toggle et lune */
+.theme-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs);
+  transition: var(--transition-fast);
+}
+
+.theme-icon {
+  transition: var(--transition-fast);
+}
+.theme-icon:hover {
+  cursor:pointer;
+}
+/* Animation selon le thème actif */
+[data-theme="light"] .sun-icon {
+  opacity: 1;
+  filter: grayscale(0%);
+  transform: scale(1.1);
+}
+
+[data-theme="dark"] .moon-icon {
+  opacity: 1;
+  filter: grayscale(0%);
+  transform: scale(1.1);
+}
+
+[data-theme="light"] .moon-icon,
+[data-theme="dark"] .sun-icon {
+  opacity: 0.4;
+  filter: grayscale(80%);
+}
+
+.user-icon img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transition-medium);
+}
+
+.user-icon img:hover {
+  transform: scale(1.08);
+}
+
+.language {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .header-container {
+    padding: var(--spacing-md);
+  }
+  
+  .header-controls {
+    gap: var(--spacing-sm);
+  }
+  
+  .org-text {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .header-container {
+    padding: var(--spacing-xl) var(--spacing-xxl);
+  }
+
+  .logo-container {
+    gap: var(--spacing-lg);
+  }
+
+  .who-title, 
+  .who-subtitle {
+    font-size: var(--font-size-lg);
+  }
+
+  .header-controls {
+    gap: var(--spacing-xxl);
+  }
+}

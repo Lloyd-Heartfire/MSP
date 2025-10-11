@@ -1,29 +1,45 @@
+@import '../../styles/globals.css';
+
 .export-button {
-  background-color: #007bff;
-  color: white;
+  /* Utilisation des classes de boutons globales */
+  background-color: var(--button-primary);
+  color: #FBFBFB;
   border: none;
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 500;
-  border-radius: 6px;
+  padding: var(--spacing-sm) var(--spacing-xl);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
-  min-width: 120px;
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 4px var(--shadow);
+  min-width: 140px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
 }
 
 .export-button:hover {
-  background-color: #0056b3;
+  background-color: var(--button-primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 4px 12px var(--shadow-hover);
 }
 
 .export-button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+  box-shadow: 0 2px 4px var(--shadow);
 }
 
 .export-button:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+  box-shadow: var(--focus-ring);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .export-button {
+    padding: var(--spacing-md) var(--spacing-lg);
+    min-width: 120px;
+    font-size: var(--font-size-sm);
+  }
 }
