@@ -7,7 +7,7 @@ def clean_covid():
     # ------------------------------
 
     # Load the CSVs
-    df = pd.read_csv("covid/covid_19.csv")
+    df = pd.read_csv("/app/etl/covid/covid_19.csv")
 
     # Lowercase columns for consistency
     df.columns = df.columns.str.lower()
@@ -169,7 +169,7 @@ def clean_covid():
     # df_corrected.to_csv("full_clean_covid_19.csv", index=False)
     # print("CSV created")
 
-    df_corrected.to_json("covid/full_clean_covid_19.json", orient="records", force_ascii=False)
+    df_corrected.to_json("/app/etl/covid/full_clean_covid_19.json", orient="records", force_ascii=False)
     print("JSON created")
     # Check if missing population
     # Check if missing latitude

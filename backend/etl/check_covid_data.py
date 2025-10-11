@@ -18,7 +18,7 @@ def check_covid():
     dfs = []
 
     # Loop through all CSV files in the directory
-    for f in sorted(glob.glob("covid/csse_covid_19_data/csse_covid_19_daily_reports/*.csv")):
+    for f in sorted(glob.glob("/app/etl/covid/csse_covid_19_data/csse_covid_19_daily_reports/*.csv")):
         # Extract date from filename
         filename = os.path.basename(f).replace(".csv", "")
         # Parse date and check if within range
@@ -52,8 +52,12 @@ def check_covid():
     # Concatenate all DataFrames
     df_final = pd.concat(dfs, ignore_index=True)
 
-    # Save the final CSV
-    df_final.to_csv("covid/covid_19.csv", index=False)
+    # Créer le dossier si nécessaire
+    output_dir = "/app/etl/covid"
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Sauvegarder le CSV
+    df_final.to_csv(os.path.join(output_dir, "covid_19.csv"), index=False)
 
     print("CSV created : covid_19.csv")
 

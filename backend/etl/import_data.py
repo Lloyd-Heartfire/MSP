@@ -31,13 +31,13 @@ def import_database():
 
     # Adding locations and pandemics_data
     print("Import locations")
-    with open("full_clean_locations.json") as f:
+    with open("/app/etl/full_clean_locations.json") as f:
         data_list = json.load(f)
         batch = [Location(
-            country=d.get("country"),
+            country=d.get("country_region"),
             province_state=d.get("province_state") or None,
             city=d.get("city") or None,
-            iso_code=d.get("iso_code") or None,
+            iso_code=d.get("iso3") or None,
             latitude=d.get("latitude"),
             longitude=d.get("longitude"),
             # Convert into an integer if it exists
@@ -71,7 +71,7 @@ def import_database():
     missing_locations = []
     now = timezone.now()
 
-    with open("covid/full_clean_covid_19.json") as f:
+    with open("/app/etl/covid/full_clean_covid_19.json") as f:
         data_list = json.load(f)
     print(f"{len(data_list)} lines in the JSON.")
 
@@ -105,6 +105,7 @@ def import_database():
             total_cases = max(int(float(data.get("total_cases") or 0)), 0),
             total_deaths = max(int(float(data.get("total_deaths") or 0)), 0),
             total_recovered = max(int(float(data.get("total_recovered") or 0)), 0),
+            active_cases= max(int(float(data.get("active_cases") or 0)), 0),
             created_at=now,
             updated_at=now,
         ))
