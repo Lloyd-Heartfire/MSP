@@ -21,6 +21,7 @@
     --text-primary: #000000;   /* Principal text */
     --text-secondary: #000000; /* Secondary title */
     --text-muted: #6A6A6A;     /* Placeholder & legends */
+    --text-white: #FBFBFB;     /* When selected */
 
     /* Borders */
     --border-color: #017AB1;
