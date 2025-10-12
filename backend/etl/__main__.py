@@ -21,18 +21,18 @@ from etl.import_data import import_database
 
 if __name__ == '__main__':
     # Get covid_data
-    # get_covid()
+    get_covid()
     check_covid()
     clean_covid()
 
     # Get locations_data
-    # get_csv_from_github()
-    # get_who_regions_from_owid()
-    # check_and_update_locations_referentiel()
-    # check_and_update_who_regions_referentiel()
-    # locations=clean_locations()
-    # who_regions=clean_who_regions()
-    # who_region_mapping(locations, who_regions)
+    get_csv_from_github()
+    get_who_regions_from_owid()
+    check_and_update_locations_referentiel()
+    check_and_update_who_regions_referentiel()
+    locations=clean_locations()
+    who_regions=clean_who_regions()
+    who_region_mapping(locations, who_regions)
 
     # import to database
-    # import_database()
+    import_database()
