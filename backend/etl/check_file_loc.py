@@ -19,7 +19,7 @@ def check_and_update_locations_referentiel():
 
     try: 
         # Retrieve the contents of the CSV in memory
-        df_temp_locations = pd.read_pickle("temp_data.pkl")
+        df_temp_locations = pd.read_pickle("/app/etl/locations/temp_data.pkl")
         print("Temporary data loaded from temp_data.pkl") 
 
         # Map columns to final names
@@ -43,7 +43,7 @@ def check_and_update_locations_referentiel():
         df_referentiel_locations = pd.concat([df_referentiel_locations, df_temp_locations], ignore_index=True)
 
         # Save the referentiel locations dataframe
-        df_referentiel_locations.to_pickle("df_referentiel_locations.pkl")
+        df_referentiel_locations.to_pickle("/app/etl/locations/df_referentiel_locations.pkl")
         print("Referentiel locations updated and saved to df_referentiel_locations.pkl")
         print(df_referentiel_locations.info())
 
@@ -73,7 +73,7 @@ def check_and_update_who_regions_referentiel():
 
     try:
         # Retrieve the contents of the CSV in memory
-        df_temp_who_regions = pd.read_pickle("who_regions_temp_data.pkl")
+        df_temp_who_regions = pd.read_pickle("/app/etl/locations/who_regions_temp_data.pkl")
         print("Temporary WHO Regions data loaded from who_regions_temp_data.pkl")
 
         # Map columns to final names
@@ -90,7 +90,7 @@ def check_and_update_who_regions_referentiel():
         df_referentiel_who_regions = pd.concat([df_referentiel_who_regions, df_temp_who_regions], ignore_index=True)    
 
         # Save the referentiel WHO regions dataframe
-        df_referentiel_who_regions.to_pickle("df_referentiel_who_regions.pkl")
+        df_referentiel_who_regions.to_pickle("/app/etl/locations/df_referentiel_who_regions.pkl")
         print("Referentiel WHO Regions updated and saved to df_referentiel_who_regions.pkl")
         print(df_referentiel_who_regions.info())
 

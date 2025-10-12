@@ -1,6 +1,7 @@
 from django.utils import timezone
 from msp_backend.models import DataSource, Pandemic, DataFile, Location, PandemicData
 import json
+import pandas as pd
 
 # Create data for covid_19 in pandemic, source and file table 
 def import_database():
@@ -31,7 +32,7 @@ def import_database():
 
     # Adding locations and pandemics_data
     print("Import locations")
-    with open("/app/etl/full_clean_locations.json") as f:
+    with open("/app/etl/locations/full_clean_locations.json") as f:
         data_list = json.load(f)
         batch = [Location(
             country=d.get("country_region"),
@@ -123,3 +124,11 @@ def import_database():
     print(f"Finished import : {len(data_list) - len(missing_locations)} inserted lines.")
     if missing_locations:
         print(f"{len(missing_locations)} locations not found, example : {missing_locations[:5]}")
+        # Convertir en DataFrame pour pouvoir sauvegarder
+        df_missing = pd.DataFrame(missing_locations, columns=["country", "province_state", "city"])
+
+        # Sauvegarde en CSV
+        df_missing.to_csv("/app/etl/locations/missing_locations.csv", index=False, encoding="utf-8")
+
+        print("Missing locations saved to /app/etl/locations/missing_locations.csv")
+    

@@ -29,7 +29,7 @@ def get_csv_from_github():
 
         # Save as a temporary dataframe for next steps
         # A Pickle file is a serialized binary file format used to store Python objects, including pandas DataFrames. It is more efficient for saving and loading large datasets compared to CSV.
-        df_temp_locations.to_pickle("temp_data.pkl")
+        df_temp_locations.to_pickle("/app/etl/locations/temp_data.pkl")
         print("Data saved in temp_data.pkl")    
 
     except Exception as e:
@@ -52,13 +52,13 @@ def get_who_regions_from_owid():
     try:
         # Read the CSV file directly from the URL
         # df_who_regions = pd.read_csv(file_url)
-        df_who_regions = pd.read_csv("who-regions.csv")
+        df_who_regions = pd.read_csv("/app/etl/locations/who-regions.csv")
         print(f"File '{file_name}' successfully retrieved from OWID")
         print(df_who_regions.info())
 
         # Save as a temporary dataframe for next steps
         # A Pickle file is a serialized binary file format used to store Python objects, including pandas DataFrames. It is more efficient for saving and loading large datasets compared to CSV.
-        df_who_regions.to_pickle("who_regions_temp_data.pkl")
+        df_who_regions.to_pickle("/app/etl/locations/who_regions_temp_data.pkl")
         print("Data saved in who_regions_temp_data.pkl")    
 
     except Exception as e:
