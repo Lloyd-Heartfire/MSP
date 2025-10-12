@@ -171,24 +171,24 @@ def clean_covid():
     cols_to_sum = ["new_cases", "total_cases", "new_deaths", "total_deaths", "active_cases"]
 
     dates_debut = {
-        "Malaysia": "2020-03-21",
-        "Japan": "2020-05-27",
-        "Italy": "2020-06-13",
-        "India": "2020-06-09",
-        "Belgium": "2020-11-11",
-        "Brazil": "2020-05-19",
-        "Colombia": "2020-05-27",
-        "Germany": "2020-05-14",
-        "Spain": "2020-05-14",
-        "Netherlands": "2020-07-16",
-        "Pakistan": "2020-06-09",
-        "Peru": "2020-05-27",
-        "Russia": "2020-05-31",
-        "Sweden": "2020-06-04",
-        "Ukraine": "2020-05-31",
-        "Canada": "2020-03-21",
-        "China": "2020-03-21",
-        "United States of America": "2020-03-21"
+        "Malaysia": "2020-03-22",
+        "Japan": "2020-05-28",
+        "Italy": "2020-06-14",
+        "India": "2020-06-10",
+        "Belgium": "2020-11-12",
+        "Brazil": "2020-05-20",
+        "Colombia": "2020-05-28",
+        "Germany": "2020-05-15",
+        "Spain": "2020-05-15",
+        "Netherlands": "2020-07-17",
+        "Pakistan": "2020-06-10",
+        "Peru": "2020-05-28",
+        "Russia": "2020-06-01",
+        "Sweden": "2020-06-05",
+        "Ukraine": "2020-06_01",
+        "Canada": "2020-03-22",
+        "China": "2020-03-22",
+        "United States of America": "2020-03-22"
     }
 
     results = []
