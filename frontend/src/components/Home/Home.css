@@ -6,6 +6,7 @@
   flex-direction: column;
   background-color: var(--primary-bg);
   color: var(--text-primary);
+  width: 100vw;
   transition: background-color var(--transition-medium), color var(--transition-medium);
 }
 
@@ -17,9 +18,9 @@
   justify-content: flex-start; /* place le contenu sous le header */
   gap: var(--spacing-xl);
   max-width: none;
-  width: 50%;
-  margin: 0 auto;
-  padding: var(--spacing-xxl) var(--spacing-lg);
+  width: 100%;
+  margin: 0;
+  padding: var(--spacing-xxl) 0;
   padding-top: var(--spacing-lg); /* réduire l'espace sous le header */
 }
 
@@ -30,8 +31,8 @@
   text-align: center;
   margin: 0;
   padding: var(--spacing-xl);
-  /* Full-bleed robuste: largeur viewport et centrage */
-  width:95vw;
+  /* Full-bleed robuste: occupe toute la largeur */
+  width: 95vw;
   max-width: 100vw;
   position: relative;
   left: 50%;
