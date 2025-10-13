@@ -208,6 +208,7 @@ def clean_covid():
     
     df_corrected = pd.concat([df_corrected] + results, ignore_index=True)
     df_corrected = df_corrected.sort_values(['observation_date','country', 'province_state', 'city'])
+    df_corrected.drop(columns=["date_debut"], inplace=True)
     df_corrected.drop_duplicates(inplace=True)
     # ------------------------------
     # Step 6 : Save as JSON (and CSV)
