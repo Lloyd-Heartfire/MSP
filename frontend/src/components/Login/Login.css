@@ -1,0 +1,114 @@
+/* Import des styles globaux */
+@import '../../styles/globals.css';
+
+.login-page {
+  min-height: 100vh;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--primary-bg);
+  font-family: var(--font-family);
+  margin: 0;
+  padding: 0;
+}
+
+.login-main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-xxl);
+  width: 100%;
+  position: relative;
+}
+
+.login-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border-color);
+  padding: var(--spacing-xxl) var(--spacing-xxl);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 2px 4px var(--shadow);
+  transition: var(--transition-medium);
+}
+
+.login-card h1 {
+  font-size: var(--font-size-xxl);
+  font-weight: var(--font-weight-regular);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xxl);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.form-input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  font-size: var(--font-size-md);
+  transition: var(--transition-fast);
+  font-family: var(--font-family);
+  margin-top: var(--spacing-xl);
+
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--focus-border);
+  box-shadow: var(--focus-ring);
+}
+
+.form-input::placeholder {
+  color: var(--text-muted);
+  font-weight: var(--font-weight-regular);
+}
+
+.sign-in-btn {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background-color: var(--button-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  margin-top: var(--spacing-xl);
+}
+
+.sign-in-btn:hover {
+  background-color: var(--button-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--shadow-hover);
+}
+
+.signup-link {
+  margin-top: var(--spacing-xl);
+  color: var(--text-muted);
+  font-size: var(--font-size-lg);
+}
+
+.signup-link a {
+  color: var(--button-primary);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  transition: var(--transition-fast);
+}
+
+.signup-link a:hover {
+  color: var(--button-primary-hover);
+  text-decoration: underline;
+}

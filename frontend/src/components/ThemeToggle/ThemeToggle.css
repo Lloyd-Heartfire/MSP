@@ -1,0 +1,65 @@
+.theme-toggle-label {
+    cursor: pointer;
+}
+.theme-toggle-switch {
+    position: relative;
+    display: inline-block;
+    height: 32px;
+    width: 56px;
+}
+.theme-toggle-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 100%; /* Couvre tout le switch */
+    height: 100%; /* Couvre tout le switch */
+    top: 0;
+    left: 0;
+    margin: 0;
+    cursor: pointer;
+    z-index: 2; /* Au dessus du track */
+}
+
+.theme-toggle-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 32px;
+    width: 56px;
+    border-radius: 16px;
+    border: 2px solid var(--border-color);
+    background: var(--button-secondary);
+    transition: var(--transition-medium);
+    z-index: 1; /* En dessous du checkbox */
+}
+
+.theme-toggle-dot {
+    position: absolute;
+    left: 4px;
+    top: 2px; 
+    height: 24px;
+    width: 24px;
+    border-radius: 12px;
+    background: var(--button-primary);
+    transition: var(--transition-fast);
+    z-index: 1; /* Même niveau que le track */
+}
+
+/* Animation du dot quand activé */
+.theme-toggle-checkbox:checked + .theme-toggle-track .theme-toggle-dot {
+    left: 28px; 
+    background: var(--card-bg);
+}
+
+/* États visuels */
+.theme-toggle-checkbox:checked + .theme-toggle-track {
+    background: var(--button-primary);
+    border-color: var(--button-primary);
+}
+
+.theme-toggle-checkbox:hover + .theme-toggle-track {
+    background: var(--button-secondary-hover);
+}
+
+.theme-toggle-checkbox:checked:hover + .theme-toggle-track {
+    background: var(--button-primary-hover);
+}
