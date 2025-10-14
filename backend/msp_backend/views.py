@@ -1,4 +1,4 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,6 +15,7 @@ from .serializers import (
     DataRequestSerializer,
     PandemicDataSerializer
 )
+from .throttling import BurstRateThrottle, DataAPIThrottle
 from collections import defaultdict
 from datetime import datetime
 import csv
@@ -39,14 +40,15 @@ import csv
 )
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([BurstRateThrottle])
 def get_continents(request):
-    #retourne la liste des continents
-    continents = Location.objects.values_list('continent', flat=True).distinct().order_by('continent')
+    #retourne la liste des régions who au lieu des continents
+    who_regions = Location.objects.values_list('who_region', flat=True).distinct().order_by('who_region')
     
     #formater en [{id, name}]
     data = [
-        {'id': continent.lower().replace(' ', '_'), 'name': continent}
-        for continent in continents if continent
+        {'id': region.lower().replace(' ', '_'), 'name': region}
+        for region in who_regions if region
     ]
     
     return Response(data, status=status.HTTP_200_OK)
@@ -84,8 +86,9 @@ def get_continents(request):
 )
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([BurstRateThrottle])
 def get_countries(request):
-    #retourne la liste des pays filtrés par continents
+    #retourne la liste des pays filtrés par régions who même si le param sappelle continents pour garder la compatibilité api
     continents_param = request.query_params.get('continents', '')
     continents = [c.strip() for c in continents_param.split(',') if c.strip()]
     
@@ -100,21 +103,21 @@ def get_countries(request):
     #requête de base
     queryset = Location.objects.all()
     
-    #filtre par continents si pas world
+    #filtre par who_region
     if continents and continents[0] not in ['world', '*']:
         #normaliser les noms (première lettre en majuscule)
         continents_normalized = [c.replace('_', ' ').title() for c in continents]
-        queryset = queryset.filter(continent__in=continents_normalized)
+        queryset = queryset.filter(who_region__in=continents_normalized)
     
-    #récupérer les pays distincts avec leur continent
-    countries = queryset.values('country', 'continent').distinct().order_by('continent', 'country')
+    #récupérer les pays distincts avec leur région who
+    countries = queryset.values('country', 'who_region').distinct().order_by('who_region', 'country')
     
-    #formater en {id, name, continent}
+    #formater en {id, name, continent} on garde le nom continent dans la réponse pour compatibilité frontend
     data = [
         {
             'id': country['country'].lower().replace(' ', '_'),
             'name': country['country'],
-            'continent': country['continent'].lower().replace(' ', '_') if country['continent'] else None
+            'continent': country['who_region'].lower().replace(' ', '_') if country['who_region'] else None
         }
         for country in countries if country['country']
     ]
@@ -155,6 +158,7 @@ def get_countries(request):
 )
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([BurstRateThrottle])
 def get_states(request):
     # retourne la liste des états/provinces filtrés par pays
 
@@ -197,8 +201,9 @@ def get_states(request):
 @extend_schema(exclude=True)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([BurstRateThrottle])
 def get_admin2(request):
-    #retourne la liste des admin2_usa filtrés par états
+    #retourne la liste des villes filtrées par états
     states_param = request.query_params.get('states', '')
     states = [s.strip() for s in states_param.split(',') if s.strip()]
     
@@ -210,8 +215,8 @@ def get_admin2(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
     
-    #requête de base sur la table locations avec admin2_usa
-    queryset = Location.objects.exclude(admin2_usa__isnull=True).exclude(admin2_usa='')
+    #requête de base sur la table locations avec city
+    queryset = Location.objects.exclude(city__isnull=True).exclude(city='')
     
     #filtre par états si pas world
     if states and states[0] not in ['world', '*']:
@@ -219,17 +224,17 @@ def get_admin2(request):
         states_normalized = [s.replace('_', ' ').title() for s in states]
         queryset = queryset.filter(province_state__in=states_normalized)
     
-    #récupérer les admin2
-    admin2_list = queryset.values('admin2_usa', 'province_state').distinct().order_by('province_state', 'admin2_usa')
+    #récupérer les villes
+    cities_list = queryset.values('city', 'province_state').distinct().order_by('province_state', 'city')
     
     #formater en [{id, name, state}]
     data = [
         {
-            'id': admin2['admin2_usa'].lower().replace(' ', '_'),
-            'name': admin2['admin2_usa'],
-            'state': admin2['province_state'].lower().replace(' ', '_') if admin2['province_state'] else None
+            'id': city_data['city'].lower().replace(' ', '_'),
+            'name': city_data['city'],
+            'state': city_data['province_state'].lower().replace(' ', '_') if city_data['province_state'] else None
         }
-        for admin2 in admin2_list if admin2['admin2_usa']
+        for city_data in cities_list if city_data['city']
     ]
     
     return Response(data, status=status.HTTP_200_OK)
@@ -281,8 +286,9 @@ def get_admin2(request):
 )
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([DataAPIThrottle, BurstRateThrottle])
 def get_pandemic_data(request):
-    # endpoint pour récupérer data de pandémie
+    #endpoint pour récupérer data de pandémie
     #vlidation du payload
     serializer = DataRequestSerializer(data=request.data)
     if not serializer.is_valid():
@@ -307,14 +313,14 @@ def get_pandemic_data(request):
     location_filter = Q()
     filter_applied = None
     
-    #priorité -- admin2
+    #priorité -- cities
     admin2_list = data.get('admin2', [])
     if admin2_list and admin2_list[0] not in ['world', '*']:
         admin2_normalized = [a.replace('_', ' ').title() for a in admin2_list]
-        location_filter = Q(location__admin2_usa__in=admin2_normalized)
+        location_filter = Q(location__city__in=admin2_normalized)
         filter_applied = 'admin2'
     
-    #priorité -- states (si admin2 vide)
+    #priorité -- states (si cities vide)
     elif not filter_applied:
         states_list = data.get('states', [])
         if states_list and states_list[0] not in ['world', '*']:
@@ -330,12 +336,12 @@ def get_pandemic_data(request):
             location_filter = Q(location__country__in=countries_normalized)
             filter_applied = 'countries'
     
-    #priorité -- continents (si tout le reste est vide)
+    #priorité -- régions who (si tout le reste est vide)
     if not filter_applied:
         continents_list = data.get('continents', [])
         if continents_list and continents_list[0] not in ['world', '*']:
             continents_normalized = [c.replace('_', ' ').title() for c in continents_list]
-            location_filter = Q(location__continent__in=continents_normalized)
+            location_filter = Q(location__who_region__in=continents_normalized)
             filter_applied = 'continents'
     
     #appliquer le filtre si défini
@@ -349,10 +355,10 @@ def get_pandemic_data(request):
             period=TruncMonth('observation_date')
         ).values(
             'period',
-            'location__continent',
+            'location__who_region',
             'location__country',
             'location__province_state',
-            'location__admin2_usa',
+            'location__city',
             'location__population'
         ).annotate(
             total_cases=Sum('total_cases'),

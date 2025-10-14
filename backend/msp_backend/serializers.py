@@ -24,7 +24,7 @@ class StateSerializer(serializers.Serializer):
 
 
 class Admin2Serializer(serializers.Serializer):
-    #serializer admin2_usa
+    #serializer pour les villes
     id = serializers.CharField()
     name = serializers.CharField()
     state = serializers.CharField()
@@ -118,10 +118,11 @@ class DataRequestSerializer(serializers.Serializer):
 class PandemicDataSerializer(serializers.ModelSerializer):
     #serializer pour données de pandémie
     pandemic_name = serializers.CharField(source='pandemic.pandemic_name', read_only=True)
-    continent = serializers.CharField(source='location.continent', read_only=True)
+    #on garde le nom continent dans lapi pour compatibilité mais cest who_region en db
+    continent = serializers.CharField(source='location.who_region', read_only=True)
     country = serializers.CharField(source='location.country', read_only=True)
     province_state = serializers.CharField(source='location.province_state', read_only=True)
-    admin2 = serializers.CharField(source='location.admin2_usa', read_only=True)
+    admin2 = serializers.CharField(source='location.city', read_only=True)
     population = serializers.IntegerField(source='location.population', read_only=True)
     
     class Meta:
