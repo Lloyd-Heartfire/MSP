@@ -470,7 +470,7 @@ class PandemicData(models.Model):
     )
     
     #taux d'incidence
-    incident_rate = models.IntegerField(
+    incident_rate = models.FloatField(
         null=True,
         blank=True,
         verbose_name="Taux d'incidence",

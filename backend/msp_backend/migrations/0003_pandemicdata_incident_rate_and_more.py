@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='pandemicdata',
             name='incident_rate',
-            field=models.IntegerField(blank=True, help_text='Nombre de nouveaux cas pour .... dhabitants', null=True, verbose_name="Taux d'incidence"),
+            field=models.FloatField(blank=True, help_text='Nombre de nouveaux cas pour .... dhabitants', null=True, verbose_name="Taux d'incidence"),
         ),
         migrations.AddIndex(
             model_name='pandemicdata',

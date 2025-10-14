@@ -11,7 +11,7 @@ from .serializers import (
     ContinentSerializer,
     CountrySerializer,
     StateSerializer,
-    Admin2Serializer,
+    Admin2Serializer,  # Keep for backward compatibility
     DataRequestSerializer,
     PandemicDataSerializer
 )
@@ -202,7 +202,7 @@ def get_states(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @throttle_classes([BurstRateThrottle])
-def get_admin2(request):
+def get_admin2(request):  # Keep function name for backward compatibility
     #retourne la liste des villes filtrées par états
     states_param = request.query_params.get('states', '')
     states = [s.strip() for s in states_param.split(',') if s.strip()]
@@ -247,14 +247,14 @@ def get_admin2(request):
         'application/json': {
             'type': 'object',
             'properties': {
-                'pandemie': {'type': 'string', 'example': 'COVID-19'},
-                'startDate': {'type': 'string', 'format': 'date', 'example': '2020-01-01'},
-                'endDate': {'type': 'string', 'format': 'date', 'example': '2020-12-31'},
+                'pandemie': {'type': 'string', 'example': 'Covid-19'},
+                'startDate': {'type': 'string', 'format': 'date', 'example': '2021-01-01'},
+                'endDate': {'type': 'string', 'format': 'date', 'example': '2021-12-31'},
                 'granularity': {'type': 'string', 'enum': ['monthly'], 'example': 'monthly'},
                 'continents': {'type': 'array', 'items': {'type': 'string'}, 'example': ['europe', 'asia']},
                 'countries': {'type': 'array', 'items': {'type': 'string'}, 'example': ['france', 'italy']},
                 'states': {'type': 'array', 'items': {'type': 'string'}, 'example': ['california']},
-                'admin2': {'type': 'array', 'items': {'type': 'string'}, 'example': ['los_angeles']},
+                'cities': {'type': 'array', 'items': {'type': 'string'}, 'example': ['los_angeles']},
                 'metrics': {'type': 'array', 'items': {'type': 'string'}, 'example': ['cases', 'deaths']}
             },
             'required': ['pandemie', 'startDate', 'endDate', 'granularity', 'metrics']
@@ -314,11 +314,11 @@ def get_pandemic_data(request):
     filter_applied = None
     
     #priorité -- cities
-    admin2_list = data.get('admin2', [])
-    if admin2_list and admin2_list[0] not in ['world', '*']:
-        admin2_normalized = [a.replace('_', ' ').title() for a in admin2_list]
-        location_filter = Q(location__city__in=admin2_normalized)
-        filter_applied = 'admin2'
+    cities_list = data.get('cities', [])
+    if cities_list and cities_list[0] not in ['world', '*']:
+        cities_normalized = [c.replace('_', ' ').title() for c in cities_list]
+        location_filter = Q(location__city__in=cities_normalized)
+        filter_applied = 'cities'
     
     #priorité -- states (si cities vide)
     elif not filter_applied:
@@ -328,7 +328,7 @@ def get_pandemic_data(request):
             location_filter = Q(location__province_state__in=states_normalized)
             filter_applied = 'states'
     
-    #priorité -- countrie (si states et admin2 vides)
+    #priorité -- countries (si states et cities vides)
     if not filter_applied:
         countries_list = data.get('countries', [])
         if countries_list and countries_list[0] not in ['world', '*']:
@@ -395,8 +395,8 @@ def build_chartjs_response(aggregated_data, metrics, pandemic_name):
         location_key = row['location__country']
         if row['location__province_state']:
             location_key = f"{row['location__country']} - {row['location__province_state']}"
-        if row['location__admin2_usa']:
-            location_key = f"{row['location__country']} - {row['location__province_state']} - {row['location__admin2_usa']}"
+        if row.get('location__city'):
+            location_key = f"{row['location__country']} - {row['location__province_state']} - {row['location__city']}"
        
 
 
@@ -414,10 +414,10 @@ def build_chartjs_response(aggregated_data, metrics, pandemic_name):
             'recovered': row['total_recovered'] or 0,
             'incident_rate': row['incident_rate'] or 0,
             'mortality_rate': mortality_rate,
-            'continent': row['location__continent'],
+            'continent': row.get('location__who_region'),
             'country': row['location__country'],
             'province_state': row['location__province_state'],
-            'admin2': row['location__admin2_usa'],
+            'city': row.get('location__city'),
             'population': row['location__population']}
     
     #créer l'abscisse
@@ -458,7 +458,7 @@ def build_chartjs_response(aggregated_data, metrics, pandemic_name):
             'continent': None,
             'country': None,
             'province_state': None,
-            'admin2': None,
+            'city': None,
             'meta': {'population': None},
             'values': []
         }
@@ -471,7 +471,7 @@ def build_chartjs_response(aggregated_data, metrics, pandemic_name):
                 location_details['continent'] = period_data.get('continent')
                 location_details['country'] = period_data.get('country')
                 location_details['province_state'] = period_data.get('province_state')
-                location_details['admin2'] = period_data.get('admin2')
+                location_details['city'] = period_data.get('city')
                 location_details['meta']['population'] = period_data.get('population')
             
             #ajouter les valeurs pour cette période
@@ -526,12 +526,12 @@ def download_pandemic_data_csv(request):
     location_filter = Q()
     filter_applied = None
     
-    #priorité -- admin2
-    admin2_list = data.get('admin2', [])
-    if admin2_list and admin2_list[0] not in ['world', '*']:
-        admin2_normalized = [a.replace('_', ' ').title() for a in admin2_list]
-        location_filter = Q(location__admin2_usa__in=admin2_normalized)
-        filter_applied = 'admin2'
+    #priorité -- cities
+    cities_list = data.get('cities', [])
+    if cities_list and cities_list[0] not in ['world', '*']:
+        cities_normalized = [c.replace('_', ' ').title() for c in cities_list]
+        location_filter = Q(location__city__in=cities_normalized)
+        filter_applied = 'cities'
     
     #priorité -- states
     elif not filter_applied:
@@ -554,7 +554,7 @@ def download_pandemic_data_csv(request):
         continents_list = data.get('continents', [])
         if continents_list and continents_list[0] not in ['world', '*']:
             continents_normalized = [c.replace('_', ' ').title() for c in continents_list]
-            location_filter = Q(location__continent__in=continents_normalized)
+            location_filter = Q(location__who_region__in=continents_normalized)
             filter_applied = 'continents'
     
     #on applique le filtre
@@ -568,12 +568,11 @@ def download_pandemic_data_csv(request):
             period=TruncMonth('observation_date')
         ).values(
             'period',
-            'location__continent',
+            'location__who_region',
             'location__country',
             'location__province_state',
-            'location__admin2_usa',
-            'location__population',
-            'location__who_region'
+            'location__city',
+            'location__population'
             #ajoute des champs utiles
         ).annotate(
             total_cases=Sum('total_cases'),
@@ -593,11 +592,10 @@ def download_pandemic_data_csv(request):
         writer.writerow([
             'Période',
             'Pandémie',
-            'Continent',
+            'Région OMS',
             'Pays',
             'Province/État',
-            'Admin2 (USA)',
-            'Région OMS',
+            'Ville',
             'Population',
             'Cas totaux',
             'Nouveaux cas',
@@ -611,11 +609,10 @@ def download_pandemic_data_csv(request):
             writer.writerow([
                 row['period'].strftime('%Y-%m'),
                 pandemic.pandemic_name,
-                row['location__continent'] or '',
+                row.get('location__who_region') or '',
                 row['location__country'] or '',
                 row['location__province_state'] or '',
-                row['location__admin2_usa'] or '',
-                row['location__who_region'] or '',
+                row.get('location__city') or '',
                 row['location__population'] or 0,
                 row['total_cases'] or 0,
                 row['new_cases'] or 0,
