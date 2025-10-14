@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view, permission_classes, throttle_cla
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Avg
 from django.db.models.functions import TruncMonth
 from django.http import HttpResponse
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
@@ -365,7 +365,8 @@ def get_pandemic_data(request):
             new_cases=Sum('new_cases'),
             total_deaths=Sum('total_deaths'),
             new_deaths=Sum('new_deaths'),
-            total_recovered=Sum('total_recovered')
+            total_recovered=Sum('total_recovered'),
+            incident_rate=Avg('incident_rate')
         ).order_by('period', 'location__country')
         
         #construction du dataset au fotmat chart.js
@@ -400,12 +401,19 @@ def build_chartjs_response(aggregated_data, metrics, pandemic_name):
 
 
         #stocker les métriques pour cette période
+        total_cases = row['total_cases'] or 0
+        total_deaths = row['total_deaths'] or 0
+        #calcul du taux de mortalité pour cette période
+        mortality_rate = round((total_deaths / total_cases) * 100, 2) if total_cases > 0 else 0.0
+        
         data_by_location[location_key][period_str] = {
-            'cases': row['total_cases'] or 0,
+            'cases': total_cases,
             'new_cases': row['new_cases'] or 0,
-            'deaths': row['total_deaths'] or 0,
+            'deaths': total_deaths,
             'new_deaths': row['new_deaths'] or 0,
             'recovered': row['total_recovered'] or 0,
+            'incident_rate': row['incident_rate'] or 0,
+            'mortality_rate': mortality_rate,
             'continent': row['location__continent'],
             'country': row['location__country'],
             'province_state': row['location__province_state'],
@@ -427,7 +435,9 @@ def build_chartjs_response(aggregated_data, metrics, pandemic_name):
                 'new_cases': 'Nouveaux cas',
                 'deaths': 'Décès',
                 'new_deaths': 'Nouveaux décès',
-                'recovered': 'Guérisons'
+                'recovered': 'Guérisons',
+                'incident_rate': "Taux d'incidence",
+                'mortality_rate': 'Taux de mortalité (%)'
             }
             label = f"{metric_label_map.get(metric, metric)} - {location_key}"
             #extraire les valeurs dans l'ordre des périodes
@@ -471,7 +481,9 @@ def build_chartjs_response(aggregated_data, metrics, pandemic_name):
                 'new_cases': period_data.get('new_cases', 0),
                 'deaths': period_data.get('deaths', 0),
                 'new_deaths': period_data.get('new_deaths', 0),
-                'recovered': period_data.get('recovered', 0)
+                'recovered': period_data.get('recovered', 0),
+                'incident_rate': period_data.get('incident_rate', 0),
+                'mortality_rate': period_data.get('mortality_rate', 0.0)
             })
         detailed_data.append(location_details)
     

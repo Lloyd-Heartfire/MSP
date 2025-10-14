@@ -105,7 +105,7 @@ class DataRequestSerializer(serializers.Serializer):
                 })
         
         #validation des métriques connues
-        valid_metrics = ['cases', 'new_cases', 'deaths', 'new_deaths', 'recovered']
+        valid_metrics = ['cases', 'new_cases', 'deaths', 'new_deaths', 'recovered', 'incident_rate', 'mortality_rate']
         for metric in data.get('metrics', []):
             if metric not in valid_metrics:
                 raise serializers.ValidationError({
@@ -140,6 +140,7 @@ class PandemicDataSerializer(serializers.ModelSerializer):
             'new_deaths',
             'total_recovered',
             'active_cases',
+            'incident_rate',
             'population'
         ]
 
