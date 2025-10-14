@@ -30,7 +30,7 @@ def get_covid():
 
     python_path = "python"
     script_path = "/app/etl/get_csv.py"
-    log_path = "/app/get_csv.log"
+    log_path = "/app/etl/get_csv.log"
 
     # Every beginning of each month, we use a cron
     cron_line = f"0 0 1 * * {python_path} {script_path} >> {log_path} 2>&1"

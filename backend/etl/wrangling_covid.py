@@ -7,7 +7,7 @@ def clean_covid():
     # ------------------------------
 
     # Load the CSVs
-    df = pd.read_csv("covid/covid_19.csv")
+    df = pd.read_csv("/app/etl/covid/covid_19.csv")
 
     # Lowercase columns for consistency
     df.columns = df.columns.str.lower()
@@ -17,7 +17,7 @@ def clean_covid():
 
     # Remove rows with unwanted keywords
     mask = df.astype(str).apply(
-        lambda col: col.str.contains("Unknown|Unassigned|Out of|Olympics|Recovered|Princess|MS Zaandam|Antarctica|Yakutat|New York City", na=False)
+        lambda col: col.str.contains("Unknown|Unassigned|Out of|Olympics|Recovered|Princess|MS Zaandam|Antarctica|Yakutat|New York City|Others|Repatriated Travellers|Port Quarantine|Federal Correctional Institution (FCI)|Michigan Department of Corrections (MDOC)|(FCI)|(MDOC)", na=False)
     ).any(axis=1)
     df = df[~mask]
 
@@ -62,7 +62,7 @@ def clean_covid():
     print("Df lat created")
 
     # ------------------------------
-    # Step 2 : Complete population for China and Taiwan
+    # Step 2 : Complete population for China, Taiwan and Korea
     # ------------------------------
 
     df_lat["country"] = df_lat["country"].replace({
@@ -72,6 +72,9 @@ def clean_covid():
         "Macau SAR": "China",
         "Taiwan*": "Taiwan",
         "Macau": "China",
+        "South Korea":"Korea, South",
+        "occupied Palestinian territory":"West Bank and Gaza",
+        "Czech Republic": "Czechia",
     })
 
     # CSV with population still missing
@@ -98,6 +101,9 @@ def clean_covid():
     # Remove rows where 'long_' or population is NaN
     # df_corrected = df_corrected.dropna(subset=['long_'])
     # df_corrected = df_corrected.dropna(subset=['population'])
+
+
+
     df_corrected.drop_duplicates(inplace=True)
 
     # ------------------------------
@@ -160,16 +166,59 @@ def clean_covid():
     df_corrected["province_state"] = df_corrected["province_state"].str.replace(r'\s+', ' ', regex=True).str.strip()
     df_corrected["city"] = df_corrected["city"].str.replace(r'\s+', ' ', regex=True).str.strip()
 
-    df_corrected = df_corrected.sort_values(['observation_date','city','province_state','country'])
 
+    # === 4. Colonnes numériques à agréger ===
+    cols_to_sum = ["new_cases", "total_cases", "new_deaths", "total_deaths", "active_cases"]
+
+    dates_debut = {
+        "Malaysia": "2020-03-22",
+        "Japan": "2020-05-28",
+        "Italy": "2020-06-14",
+        "India": "2020-06-10",
+        "Belgium": "2020-11-12",
+        "Brazil": "2020-05-20",
+        "Colombia": "2020-05-28",
+        "Germany": "2020-05-15",
+        "Spain": "2020-05-15",
+        "Netherlands": "2020-07-17",
+        "Pakistan": "2020-06-10",
+        "Peru": "2020-05-28",
+        "Russia": "2020-06-01",
+        "Sweden": "2020-06-05",
+        "Ukraine": "2020-06_01",
+        "Canada": "2020-03-22",
+        "China": "2020-03-22",
+        "United States of America": "2020-03-22"
+    }
+
+    results = []
+
+    for country, start_date in dates_debut.items():
+        df_country = (
+            df_corrected[
+                (df_corrected["country"] == country)
+                & (df_corrected["observation_date"] >= start_date)
+            ]
+            .groupby(["observation_date", "country"], as_index=False)[cols_to_sum]
+            .sum()
+        )
+        df_country["date_debut"] = start_date
+        results.append(df_country)
+
+    
+    df_corrected = pd.concat([df_corrected] + results, ignore_index=True)
+    df_corrected = df_corrected.sort_values(['observation_date','country', 'province_state', 'city'])
+    df_corrected.drop(columns=["date_debut"], inplace=True)
+    df_corrected.drop_duplicates(inplace=True)
     # ------------------------------
     # Step 6 : Save as JSON (and CSV)
     # ------------------------------
+    
 
     # df_corrected.to_csv("full_clean_covid_19.csv", index=False)
     # print("CSV created")
-
-    df_corrected.to_json("covid/full_clean_covid_19.json", orient="records", force_ascii=False)
+    df_corrected.to_csv("/app/etl/covid/full_clean_covid_19.csv", index=False)
+    df_corrected.to_json("/app/etl/covid/full_clean_covid_19.json", orient="records", force_ascii=False)
     print("JSON created")
     # Check if missing population
     # Check if missing latitude

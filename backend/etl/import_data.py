@@ -1,6 +1,7 @@
 from django.utils import timezone
 from msp_backend.models import DataSource, Pandemic, DataFile, Location, PandemicData
 import json
+import pandas as pd
 
 # Create data for covid_19 in pandemic, source and file table 
 def import_database():
@@ -31,13 +32,13 @@ def import_database():
 
     # Adding locations and pandemics_data
     print("Import locations")
-    with open("full_clean_locations.json") as f:
+    with open("/app/etl/locations/full_clean_locations.json") as f:
         data_list = json.load(f)
         batch = [Location(
-            country=d.get("country"),
+            country=d.get("country_region"),
             province_state=d.get("province_state") or None,
             city=d.get("city") or None,
-            iso_code=d.get("iso_code") or None,
+            iso_code=d.get("iso3") or None,
             latitude=d.get("latitude"),
             longitude=d.get("longitude"),
             # Convert into an integer if it exists
@@ -71,7 +72,7 @@ def import_database():
     missing_locations = []
     now = timezone.now()
 
-    with open("covid/full_clean_covid_19.json") as f:
+    with open("/app/etl/covid/full_clean_covid_19.json") as f:
         data_list = json.load(f)
     print(f"{len(data_list)} lines in the JSON.")
 
@@ -105,6 +106,7 @@ def import_database():
             total_cases = max(int(float(data.get("total_cases") or 0)), 0),
             total_deaths = max(int(float(data.get("total_deaths") or 0)), 0),
             total_recovered = max(int(float(data.get("total_recovered") or 0)), 0),
+            active_cases= max(int(float(data.get("active_cases") or 0)), 0),
             created_at=now,
             updated_at=now,
         ))
@@ -122,3 +124,11 @@ def import_database():
     print(f"Finished import : {len(data_list) - len(missing_locations)} inserted lines.")
     if missing_locations:
         print(f"{len(missing_locations)} locations not found, example : {missing_locations[:5]}")
+        # Convertir en DataFrame pour pouvoir sauvegarder
+        df_missing = pd.DataFrame(missing_locations, columns=["country", "province_state", "city"])
+
+        # Sauvegarde en CSV
+        df_missing.to_csv("/app/etl/locations/missing_locations.csv", index=False, encoding="utf-8")
+
+        print("Missing locations saved to /app/etl/locations/missing_locations.csv")
+    

@@ -8,7 +8,7 @@ def clean_locations():
     """Clean and standardize the locations dataframe"""
 
     # Load file
-    locations = pd.read_pickle("df_referentiel_locations.pkl")
+    locations = pd.read_pickle("/app/etl/locations/df_referentiel_locations.pkl")
     print("File 'df_referentiel_locations.pkl' loaded.")
     print(locations.info())
 
@@ -22,6 +22,16 @@ def clean_locations():
 
     # Standardize iso3 to uppercase
     locations["iso3"] = locations["iso3"].str.upper()
+
+        # Remove special characters
+    locations["country_region"] = locations["country_region"].str.replace(r"[^\w\s\-\(\)',]", "", regex=True)
+    locations["province_state"] = locations["province_state"].str.replace(r"[^\w\s\-\(\)',]", "", regex=True)
+    locations["city"] = locations["city"].str.replace(r"[^\w\s\-\(\)',]", "", regex=True)
+
+    # Remove double spaces and leading/trailing spaces
+    locations["country_region"] = locations["country_region"].str.replace(r'\s+', ' ', regex=True).str.strip()
+    locations["province_state"] = locations["province_state"].str.replace(r'\s+', ' ', regex=True).str.strip()
+    locations["city"] = locations["city"].str.replace(r'\s+', ' ', regex=True).str.strip()
 
     # Check duplicates in locations based on latitude and longitude
     loc_duplicates = locations[locations.duplicated(subset=["latitude", "longitude"], keep=False)]
@@ -49,7 +59,7 @@ def clean_who_regions():
     """Clean and standardize the WHO regions dataframe"""
 
     # Load file
-    who_regions = pd.read_pickle("df_referentiel_who_regions.pkl")
+    who_regions = pd.read_pickle("/app/etl/locations/df_referentiel_who_regions.pkl")
     print("File 'df_referentiel_who_regions.pkl' loaded.")
     print(who_regions.info())
 
@@ -105,8 +115,13 @@ def who_region_mapping(locations, who_regions):
     print("Locations with WHO regions mapped:")
     print(locations.info())
 
+     
+    locations["country_region"] = locations["country_region"].replace("US", "United States of America")
+
     # Save cleaned file
-    locations.to_csv("full_clean_locations.csv", index=False, encoding="utf-8")
+    locations.to_csv("/app/etl/locations/full_clean_locations.csv", index=False, encoding="utf-8")
+    locations.to_json("/app/etl/locations/full_clean_locations.json", orient="records", force_ascii=False)
+
     print(f"\n Cleaned locations file saved: full_clean_locations.csv")
 
     return locations
