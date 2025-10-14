@@ -469,6 +469,14 @@ class PandemicData(models.Model):
         help_text="Calculé ou rapporté selon source"
     )
     
+    #taux d'incidence
+    incident_rate = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Taux d'incidence",
+        help_text="Nombre de nouveaux cas pour .... dhabitants"
+    )
+    
     created_at = models.DateTimeField(
         default=timezone.now,
         verbose_name="Date de création"
@@ -489,6 +497,10 @@ class PandemicData(models.Model):
         indexes = [
             models.Index(fields=['observation_date'], name='idx_time_series'),
             models.Index(fields=['file'], name='idx_file_tracking'),
+            #index pour optimiser les requêtes sur les métriques principales
+            models.Index(fields=['total_cases'], name='idx_total_cases'),
+            models.Index(fields=['total_deaths'], name='idx_total_deaths'),
+            models.Index(fields=['incident_rate'], name='idx_incident_rate'),
         ]
         
         constraints = [
@@ -501,7 +513,12 @@ class PandemicData(models.Model):
     def __str__(self):
         return f"{self.pandemic.pandemic_name} - {self.location} ({self.observation_date})"
 
-
+    @property
+    def mortality_rate(self):
+        #calcule le taux de mortalité en pourcentage (décès / cas)
+        if self.total_cases and self.total_cases > 0:
+            return round((self.total_deaths / self.total_cases) * 100, 2)
+        return 0.0
 
 # fonction pour valider les données (nbr de mort et nbr de cas)
     def clean(self):
