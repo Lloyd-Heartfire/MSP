@@ -3,7 +3,7 @@ init:    ##initialize the project
 	@docker compose up -d --build
 	@$(MAKE) migrate
 	@docker compose exec -e DJANGO_SUPERUSER_PASSWORD=admin django_api python manage.py createsuperuser --noinput --email admin@admin.com --username admin
-	@$(MAKE) load
+	
 start:    ## start back + front
 	@docker compose up -d
 
