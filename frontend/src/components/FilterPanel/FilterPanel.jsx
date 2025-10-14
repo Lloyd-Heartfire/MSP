@@ -13,7 +13,7 @@ const FilterPanel = () => {
     } = useData();
 
     // Local state for open dropdown
-    const {openDropdown, setOpenDropdown} = useState(null);
+    const [openDropdown, setOpenDropdown] = useState(null);
 
     // Load the pandemics
     useEffect(() => {
@@ -24,7 +24,7 @@ const FilterPanel = () => {
 
     // Load the regions
     useEffect(() => {
-        if (availableOptions.regions.length === 0) {
+        if (availableOptions.who_regions.length === 0) {
             fetchRegions();
         }
     }, []);
@@ -35,8 +35,8 @@ const FilterPanel = () => {
     };
 
     // Select a who-region
-    const handleRegionSelect = (region) => {
-        updateFilters({region: region.id});
+    const handleRegionSelect = (who_region) => {
+        updateFilters({who_region: who_region.id});
         setOpenDropdown(null);
     };
 
@@ -68,18 +68,18 @@ const FilterPanel = () => {
         <div className="filter-panel">
             {/* Who-Region */}
             <Dropdown
-                label={filters.region ? getSelectedLabel("region", availableOptions.regions) : "Eastern Mediterranean Region"}
-                isOpen={openDropdown === "region"}
-                onClick={() => handleDropdownClick("region")}
-                loading={loadingOptions.regions}
+                label={filters.who_region ? getSelectedLabel("who_region", availableOptions.who_regions) : "Eastern Mediterranean Region"}
+                isOpen={openDropdown === "who_region"}
+                onClick={() => handleDropdownClick("who_region")}
+                loading={loadingOptions.who_regions}
             >
-                {availableOptions.regions.map((region) => (
+                {availableOptions.who_regions.map((who_region) => (
                     <DropdownItem
-                        key={region.id}
-                        onClick={() => handleRegionSelect(region)}
-                        selected={filters.region === region.id}
+                        key={who_region.id}
+                        onClick={() => handleRegionSelect(who_region)}
+                        selected={filters.who_region === who_region.id}
                     >
-                        {region.name}
+                        {who_region.name}
                     </DropdownItem>
                 ))}
             </Dropdown>

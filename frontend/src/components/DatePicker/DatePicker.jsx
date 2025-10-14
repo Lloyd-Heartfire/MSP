@@ -4,11 +4,10 @@ import './DatePicker.css';
 
 const DatePicker = () => {
   const { filters, updateFilters } = useData();
-  const { t } = useLanguage();
 
   // Dates min et max disponibles
-  const minDate = new Date('2020-01-01');
-  const maxDate = new Date('2025-12-31');
+  const minDate = new Date('2020-03-01');
+  const maxDate = new Date('2022-03-01');
 
   // Conversion date <-> timestamp
   const dateToTimestamp = (date) => new Date(date).getTime();
@@ -66,7 +65,7 @@ const DatePicker = () => {
 
   return (
     <div className="date-range-slider-container">
-      <h3 className="date-picker-title">{t('dashboard.datePicker') || 'Date picker'}</h3>
+      <h3 className="date-picker-title">{'Date picker'}</h3>
       
       {/* Inputs de dates */}
       <div className="date-inputs">
@@ -89,7 +88,7 @@ const DatePicker = () => {
             value={filters.endDate}
             onChange={handleEndInputChange}
             min={filters.startDate}
-            max={maxDate.toISOString().split('T')[0]}
+            max={maxDate.toISOString().split('S')[0]}
             className="date-input"
           />
         </div>

@@ -16,7 +16,7 @@ export const DataProvider = ({children}) => {
         who_region: null,
         country: null,
         province: null,
-        admin2: null,
+        city: null,
         startDate: "2020-03-01",
         endDate: "2022-03-01",
         change_metric: false,    // 1 per 100 000
@@ -28,11 +28,11 @@ export const DataProvider = ({children}) => {
         who_regions: [],
         countries: [],
         provinces: [],
-        admin2: [],
+        city: [],
     });
 
     // State for visualized data
-    const [DataContext, setData] = useState({
+    const [data, setData] = useState({
         stats: {
             newCases: 0,
             totalCases: 0,
@@ -52,10 +52,10 @@ export const DataProvider = ({children}) => {
     const [loading, setLoading] = useState(false);
     const [loadingOptions, setLoadingOptions] = useState({
         pandemics: false,
-        regions: false,
+        who_regions: false,
         countries: false,
         provinces: false,
-        admin2: false,
+        city: false,
     });
     const [error, setError] = useState(null);
     const [isValidated, setIsValidated] = useState(false);
@@ -64,17 +64,17 @@ export const DataProvider = ({children}) => {
 
     // Load the list of pandemics
     const fetchPandemics = async () => {
-        setLoading((prev) => ({ ...prev, pandemics: true}));
+        setLoadingOptions((prev) => ({ ...prev, pandemics: true}));
         try {
             // To Do: Replace with API when we have it
             const response = await fetch(`${API_BASE_URL}/pandemics/`);
 
             if (!response.ok) throw new Error('Erreur de chargement des pandémies');
 
-            const data = await response.json();
-            setAvailableOptions((prev) => ({ ...prev, pandemics: data}));
+            const result = await response.json();
+            setAvailableOptions((prev) => ({ ...prev, pandemics: result}));
 
-            return {success: true, data};
+            return {success: true, data: result};
         } catch (error) {
             console.error("Erreur fetchPandemics:", error);
             return { success: false, error: error.message};
@@ -88,7 +88,7 @@ export const DataProvider = ({children}) => {
         setLoadingOptions((prev) => ({ ...prev, who_regions: true}));
         try {
             // To Do: Replace with API when we have it
-            const response = await fetch(`${API_BASE_URL}/regions/`);
+            const response = await fetch(`${API_BASE_URL}/who_regions/`);
 
             if (!response.ok) throw new Error('Erreur de chargement des régions');
 
@@ -105,8 +105,8 @@ export const DataProvider = ({children}) => {
     };
 
     // Load the countries
-    const fetchCountries = async (regionId) => {
-        if (!regionId) {
+    const fetchCountries = async (who_regionId) => {
+        if (!who_regionId) {
             setAvailableOptions((prev) => ({ ...prev, countries: [] }));
             return;
         }
@@ -114,7 +114,7 @@ export const DataProvider = ({children}) => {
         setLoadingOptions((prev) => ({ ...prev, countries: true }));
         try {
             // To Do: Replace with API when we have it
-            const response = await fetch(`${API_BASE_URL}/countries/?region_id=${regionId}`);
+            const response = await fetch(`${API_BASE_URL}/countries/?who_region_id=${who_regionId}`);
 
             if (!response.ok) throw new Error('Erreur de chargement des pays');
 
@@ -157,28 +157,28 @@ export const DataProvider = ({children}) => {
     };
 
     // Load the countries
-    const fetchAdmin2 = async (provinceId) => {
+    const fetchCity = async (provinceId) => {
         if (!provinceId) {
-            setAvailableOptions((prev) => ({ ...prev, admin2: [] }));
+            setAvailableOptions((prev) => ({ ...prev, city: [] }));
             return;
         }
 
         setLoadingOptions((prev) => ({ ...prev, countries: true }));
         try {
             // To Do: Replace with API when we have it
-            const response = await fetch(`${API_BASE_URL}/admin2/?province_id=${provinceId}`);
+            const response = await fetch(`${API_BASE_URL}/city/?province_id=${provinceId}`);
 
-            if (!response.ok) throw new Error('Erreur de chargement des admin2');
+            if (!response.ok) throw new Error('Erreur de chargement des city');
 
             const data = await response.json();
-            setAvailableOptions((prev) => ({ ...prev, admin2: data}));
+            setAvailableOptions((prev) => ({ ...prev, city: data}));
 
             return {success: true, data};
         } catch (error) {
-            console.error("Erreur fetchAdmin2:", error);
+            console.error("Erreur fetchCity:", error);
             return { success: false, error: error.message};
         } finally {
-            setLoadingOptions((prev) => ({ ...prev, admin2: false}));
+            setLoadingOptions((prev) => ({ ...prev, city: false}));
         }
     };
 
@@ -190,21 +190,21 @@ export const DataProvider = ({children}) => {
             const updated = { ...prev, ...newFilters};
 
             // Cascading reset if region change
-            if (newFilters.region !== undefined && newFilters.region !== prev.region) {
+            if (newFilters.who_region !== undefined && newFilters.who_region !== prev.who_region) {
                 updated.country = null;
                 updated.province = null;
-                updated.admin2 = null;
+                updated.city = null;
                 // Load the countries of a new region
-                if (newFilters.region) {
-                    fetchCountries(newFilters.region);
+                if (newFilters.who_region) {
+                    fetchCountries(newFilters.who_region);
                 }
             }
 
             // Cascading reset if country change
             if (newFilters.country !== undefined && newFilters.country !== prev.country) {
                 updated.province = null;
-                updated.admin2 = null;
-                // Load the admin2 of a new province
+                updated.city = null;
+                // Load the city of a new province
                 if (newFilters.country) {
                     fetchProvinces(newFilters.country);
                 }
@@ -212,10 +212,10 @@ export const DataProvider = ({children}) => {
 
             // Cascading reset if province change
             if (newFilters.province !== undefined && newFilters.province !== prev.province) {
-                updated.admin2 = null;
-                // Load the admin2 of a new province
+                updated.city = null;
+                // Load the city of a new province
                 if (newFilters.province) {
-                    fetchAdmin2(newFilters.province);
+                    fetchCity(newFilters.province);
                 }
             }
 
@@ -230,10 +230,10 @@ export const DataProvider = ({children}) => {
     const resetFilters = () => {
         setFilters({
             pandemic: null,
-            region: null,
+            who_region: null,
             country: null,
             province: null,
-            admin2: null,
+            city: null,
             startDate: "2020-03-01",
             endDate: "2022-03-01",
             change_metric: false,
@@ -242,7 +242,7 @@ export const DataProvider = ({children}) => {
             ...prev,
             countries: [],
             provinces: [],
-            admin2: [],
+            city: [],
         }));
         setIsValidated(false);
     };
@@ -338,10 +338,10 @@ export const DataProvider = ({children}) => {
         fetchRegions,
         fetchCountries,
         fetchProvinces,
-        fetchAdmin2,
+        fetchCity,
 
         // Datavisualisation
-        data,
+        data: data,
         loading,
         error,
         isValidated,
@@ -350,6 +350,12 @@ export const DataProvider = ({children}) => {
         fetchData,
         exportData,
     };
+
+    return (
+        <DataContext.Provider value={value}>
+            {children}
+        </DataContext.Provider>
+    );
 };
 
 // Custom hook

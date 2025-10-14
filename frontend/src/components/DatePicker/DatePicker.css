@@ -72,8 +72,8 @@
 
 .slider-label-start,
 .slider-label-end {
-    background-color: var(--who-blue);
-    color: var(--text-primary);
+    background-color: var(--border-color);
+    color: var(--text-white);
     padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--radius-sm);
     font-size: var(--font-size-sm);
@@ -93,7 +93,7 @@
 .slider-range {
     position: absolute;
     height: 100%;
-    background-color: var(--who-blue);
+    background-color: var(--border-color);
     border-radius: var(--radius-sm);
     pointer-events: none;
 }
@@ -115,8 +115,8 @@
     appearance: none;
     width: 20px;
     height: 20px;
-    background-color: var(--bg-primary);
-    border: 2px solid var(--who-blue);
+    background-color: var(--text-primary);
+    border: 2px solid var(--border-color);
     border-radius: var(--radius-md);
     cursor: pointer;
     pointer-events: all;
