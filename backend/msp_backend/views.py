@@ -5,6 +5,7 @@ from rest_framework import status
 from django.db.models import Q, Sum
 from django.db.models.functions import TruncMonth
 from django.http import HttpResponse
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 from .models import Location, Pandemic, PandemicData
 from .serializers import (
     ContinentSerializer,
@@ -20,6 +21,23 @@ from datetime import datetime
 import csv
 
 
+@extend_schema(
+    summary="liste des continents",
+    description="retourne tous les continents",
+    responses={
+        200: {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'id': {'type': 'string', 'example': 'europe'},
+                    'name': {'type': 'string', 'example': 'Europe'}
+                }
+            }
+        }
+    },
+    tags=['Filtres']
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @throttle_classes([BurstRateThrottle])
@@ -36,6 +54,36 @@ def get_continents(request):
     return Response(data, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    summary="liste des pays",
+    description="retourne les pays filtrés par continents",
+    parameters=[
+        OpenApiParameter(
+            name='continents',
+            type=str,
+            location=OpenApiParameter.QUERY,
+            description="continents :",
+            examples=[
+                OpenApiExample('un continent', value='europe'),
+                OpenApiExample('plusieurs continents', value='europe,asia,africa'),
+            ]
+        )
+    ],
+    responses={
+        200: {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'id': {'type': 'string', 'example': 'france'},
+                    'name': {'type': 'string', 'example': 'France'},
+                    'continent': {'type': 'string', 'example': 'europe'}
+                }
+            }
+        },
+    },
+    tags=['Filtres']
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @throttle_classes([BurstRateThrottle])
@@ -77,6 +125,37 @@ def get_countries(request):
     return Response(data, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    summary="liste des états/provinces",
+    description="retourne les états filtrés par pays",
+    parameters=[
+        OpenApiParameter(
+            name='countries',
+            type=str,
+            location=OpenApiParameter.QUERY,
+            description="pays",
+            examples=[
+                OpenApiExample('un pays', value='united_states'),
+                OpenApiExample('plusieurs pays', value='united_states,canada,mexico'),
+
+            ]
+        )
+    ],
+    responses={
+        200: {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'id': {'type': 'string', 'example': 'california'},
+                    'name': {'type': 'string', 'example': 'California'},
+                    'country': {'type': 'string', 'example': 'united_states'}
+                }
+            }
+        },
+    },
+    tags=['Filtres']
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @throttle_classes([BurstRateThrottle])
@@ -119,6 +198,7 @@ def get_states(request):
     return Response(data, status=status.HTTP_200_OK)
 
 
+@extend_schema(exclude=True)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @throttle_classes([BurstRateThrottle])
@@ -160,6 +240,50 @@ def get_admin2(request):
     return Response(data, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    summary="Données de pandémie",
+    description="retourne la data (uniquement mensuelle pour l'instant)selon les filtres géographiques et métriques",
+    request={
+        'application/json': {
+            'type': 'object',
+            'properties': {
+                'pandemie': {'type': 'string', 'example': 'COVID-19'},
+                'startDate': {'type': 'string', 'format': 'date', 'example': '2020-01-01'},
+                'endDate': {'type': 'string', 'format': 'date', 'example': '2020-12-31'},
+                'granularity': {'type': 'string', 'enum': ['monthly'], 'example': 'monthly'},
+                'continents': {'type': 'array', 'items': {'type': 'string'}, 'example': ['europe', 'asia']},
+                'countries': {'type': 'array', 'items': {'type': 'string'}, 'example': ['france', 'italy']},
+                'states': {'type': 'array', 'items': {'type': 'string'}, 'example': ['california']},
+                'admin2': {'type': 'array', 'items': {'type': 'string'}, 'example': ['los_angeles']},
+                'metrics': {'type': 'array', 'items': {'type': 'string'}, 'example': ['cases', 'deaths']}
+            },
+            'required': ['pandemie', 'startDate', 'endDate', 'granularity', 'metrics']
+        }
+    },
+    responses={
+        200: {
+            'description': 'données pour chart.js',
+            'content': {
+                'application/json': {
+                    'example': {
+                        'abscisse': ['2020-01', '2020-02'],
+                        'ordonne': [
+                            {'label': 'Cas - France', 'data': [100, 200], 'type': 'line'}
+                        ],
+                        'data': [
+                            {
+                                'pandemie': 'COVID-19',
+                                'country': 'France',
+                                'values': [{'period': '2020-01', 'cases': 4000, 'deaths': 4000}]
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+    },
+    tags=['Données']
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 @throttle_classes([DataAPIThrottle, BurstRateThrottle])
@@ -359,6 +483,7 @@ def build_chartjs_response(aggregated_data, metrics, pandemic_name):
 
 
 
+@extend_schema(exclude=True)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 # méthode ppour télécharger les données en csv
