@@ -1,0 +1,50 @@
+/* Import des styles globaux */
+@import '../../styles/globals.css';
+
+.login-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  min-height: 70px;
+  width: 95%;
+  position: relative;
+  font-family: var(--font-family);
+  margin: 0 auto 30px auto; /* mettre au milieu entre left and right */
+}
+
+.footer-text {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+}
+
+.footer-logo img,
+.footer-logo-right img {
+  color: var(--who-blue);
+  width: 40px;
+  height: 40px;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .login-footer {
+    padding: var(--spacing-md);
+  }
+  
+  .footer-text {
+    font-size: var(--font-size-xs);
+  }
+}
+
+@media (min-width: 1024px) {
+  .login-footer {
+    padding: var(--spacing-xl) var(--spacing-xxl);
+  }
+
+  .footer-text {
+    font-size: var(--font-size-md);
+  }
+}
