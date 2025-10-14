@@ -20,12 +20,7 @@ from etl.wrangling_loc import clean_locations, clean_who_regions, who_region_map
 from etl.import_data import import_database
 
 if __name__ == '__main__':
-    # Get covid_data
-    get_covid()
-    check_covid()
-    clean_covid()
-
-    # Get locations_data
+    # Get location_data
     get_csv_from_github()
     get_who_regions_from_owid()
     check_and_update_locations_referentiel()
@@ -33,6 +28,11 @@ if __name__ == '__main__':
     locations=clean_locations()
     who_regions=clean_who_regions()
     who_region_mapping(locations, who_regions)
+
+    # Get covid_data
+    get_covid()
+    check_covid()
+    clean_covid()
 
     # import to database
     import_database()

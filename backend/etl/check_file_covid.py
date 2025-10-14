@@ -11,7 +11,7 @@ def check_covid():
 
     # Final columns to keep
     final_columns = [
-        "observation_date","city","province_state","country","total_cases","total_deaths","total_recovered","active_cases",
+        "observation_date","city","province_state","country","total_cases","total_deaths","total_recovered","active_cases","incident_rate"
     ]
 
     # List to hold individual DataFrames
@@ -38,6 +38,7 @@ def check_covid():
                     "Deaths":"total_deaths",
                     "Recovered":"total_recovered",
                     "Active":"active_cases",
+                    "Incident_Rate":"incident_rate",
                 })
                 # Add date column
                 df_temp["observation_date"] = date

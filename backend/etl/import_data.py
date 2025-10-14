@@ -107,6 +107,7 @@ def import_database():
             total_deaths = max(int(float(data.get("total_deaths") or 0)), 0),
             total_recovered = max(int(float(data.get("total_recovered") or 0)), 0),
             active_cases= max(int(float(data.get("active_cases") or 0)), 0),
+            incident_rate = max(float(data.get("incident_rate") or 0), 0),
             created_at=now,
             updated_at=now,
         ))
