@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 def clean_covid():
     
@@ -102,8 +103,6 @@ def clean_covid():
     # df_corrected = df_corrected.dropna(subset=['long_'])
     # df_corrected = df_corrected.dropna(subset=['population'])
 
-
-
     df_corrected.drop_duplicates(inplace=True)
 
     # ------------------------------
@@ -131,7 +130,7 @@ def clean_covid():
     columns_order = ['observation_date','country','province_state','city',
                     'total_cases','new_cases',
                     'total_deaths','new_deaths','total_recovered',
-                    'active_cases']
+                    'active_cases','incident_rate']
 
     df_corrected = df_corrected[columns_order]
 
@@ -210,11 +209,32 @@ def clean_covid():
     df_corrected = df_corrected.sort_values(['observation_date','country', 'province_state', 'city'])
     df_corrected.drop(columns=["date_debut"], inplace=True)
     df_corrected.drop_duplicates(inplace=True)
+
+    df_loc=pd.read_csv("/app/etl/locations/full_clean_locations.csv")
+    df_loc.rename(columns={"country_region": "country"}, inplace=True)
+    df_loc=df_loc[["country","province_state","city","population"]]
+    
+    for col in ["country", "province_state", "city"]:
+        df_corrected[col] = df_corrected[col].replace("", np.nan)
+        df_loc[col] = df_loc[col].replace("", np.nan)
+
+    df_corrected=df_corrected.merge(
+        df_loc,
+        how="left",
+        on=["country", "province_state", "city"],
+    )
+
+    # Calculation of incident_rate_new
+    df_corrected["incident_rate_new"]=(df_corrected["total_cases"]/df_corrected["population"])*100000
+    df_corrected["incident_rate"] = df_corrected["incident_rate"].fillna(df_corrected["incident_rate_new"])
+
+    df_corrected.dropna(subset=["incident_rate"], inplace=True)
+    df_corrected.drop(columns=["incident_rate_new","population"], inplace=True)
+
     # ------------------------------
     # Step 6 : Save as JSON (and CSV)
     # ------------------------------
     
-
     # df_corrected.to_csv("full_clean_covid_19.csv", index=False)
     # print("CSV created")
     df_corrected.to_csv("/app/etl/covid/full_clean_covid_19.csv", index=False)
