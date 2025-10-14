@@ -53,7 +53,7 @@ class DataRequestSerializer(serializers.Serializer):
         allow_empty=True,
         default=list
     )
-    admin2 = serializers.ListField(
+    cities = serializers.ListField(
         child=serializers.CharField(),
         required=False,
         allow_empty=True,
@@ -91,7 +91,7 @@ class DataRequestSerializer(serializers.Serializer):
             })
         
         #validation max 3 items par niveau sauf world ou *
-        for field in ['continents', 'countries', 'states', 'admin2']:
+        for field in ['continents', 'countries', 'states', 'cities']:
             values = data.get(field, [])
             
             #si world ou * alors on accepte
