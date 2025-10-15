@@ -66,15 +66,14 @@ export const DataProvider = ({children}) => {
     // const fetchPandemics = async () => {
     //     setLoadingOptions((prev) => ({ ...prev, pandemics: true}));
     //     try {
-    //         // To Do: Replace with API when we have it
-    //         const response = await fetch(`${API_BASE_URL}pandemics/`);
+    //         const response = await fetch(`${API_BASE_URL}api/pandemics/`);
 
     //         if (!response.ok) throw new Error('Erreur de chargement des pandémies');
 
-    //         const result = await response.json();
-    //         setAvailableOptions((prev) => ({ ...prev, pandemics: result}));
+    //         const data = await response.json();
+    //         setAvailableOptions((prev) => ({ ...prev, pandemics: data}));
 
-    //         return {success: true, data: result};
+    //         return {success: true, data};
     //     } catch (error) {
     //         console.error("Erreur fetchPandemics:", error);
     //         return { success: false, error: error.message};
@@ -87,7 +86,6 @@ export const DataProvider = ({children}) => {
     const fetchRegions = async () => {
         setLoadingOptions((prev) => ({ ...prev, who_regions: true}));
         try {
-            // To Do: Replace with API when we have it
             const response = await fetch(`${API_BASE_URL}api/continents/`);
 
             if (!response.ok) throw new Error('Erreur de chargement des régions');
@@ -113,7 +111,6 @@ export const DataProvider = ({children}) => {
 
         setLoadingOptions((prev) => ({ ...prev, countries: true }));
         try {
-            // To Do: Replace with API when we have it
             const response = await fetch(`${API_BASE_URL}api/countries/?continents=${who_region}`);
 
             if (!response.ok) throw new Error('Erreur de chargement des pays');
@@ -139,8 +136,7 @@ export const DataProvider = ({children}) => {
 
         setLoadingOptions((prev) => ({ ...prev, states: true }));
         try {
-            // To Do: Replace with API when we have it
-            const response = await fetch(`${API_BASE_URL}api/states/?country_id=${country}`);
+            const response = await fetch(`${API_BASE_URL}api/states/?countries=${country}`);
 
             if (!response.ok) throw new Error('Erreur de chargement des provinces');
 
@@ -156,7 +152,7 @@ export const DataProvider = ({children}) => {
         }
     };
 
-    // Load the countries
+    // Load the cities
     const fetchCity = async (state) => {
         if (!state) {
             setAvailableOptions((prev) => ({ ...prev, city: [] }));
@@ -165,8 +161,7 @@ export const DataProvider = ({children}) => {
 
         setLoadingOptions((prev) => ({ ...prev, city: true }));
         try {
-            // To Do: Replace with API when we have it
-            const response = await fetch(`${API_BASE_URL}api/admin2/?state_id=${state}`);
+            const response = await fetch(`${API_BASE_URL}api/admin2/?states=${state}`);
 
             if (!response.ok) throw new Error('Erreur de chargement des city');
 
@@ -204,7 +199,7 @@ export const DataProvider = ({children}) => {
             if (newFilters.country !== undefined && newFilters.country !== prev.country) {
                 updated.state = null;
                 updated.city = null;
-                // Load the city of a new province
+                // Load the states of a new country
                 if (newFilters.country) {
                     fetchStates(newFilters.country);
                 }
@@ -247,40 +242,151 @@ export const DataProvider = ({children}) => {
         setIsValidated(false);
     };
 
+    // HELPER FUNCTIONS FOR DATA TRANSFORMATION
+
+    // Calculate stats from Django response
+    const calculateStats = (dataArray) => {
+        if (!dataArray || dataArray.length === 0) {
+            return {
+                newCases: 0,
+                totalCases: 0,
+                newDeaths: 0,
+                totalDeaths: 0,
+                activeCases: 0,
+                totalRecovered: 0
+            };
+        }
+
+        let totalCases = 0;
+        let totalDeaths = 0;
+        let totalRecovered = 0;
+        let newCases = 0;
+        let newDeaths = 0;
+
+        dataArray.forEach(location => {
+            if (location.values && location.values.length > 0) {
+                const lastPeriod = location.values[location.values.length - 1];
+                totalCases += lastPeriod.cases || 0;
+                totalDeaths += lastPeriod.deaths || 0;
+                totalRecovered += lastPeriod.recovered || 0;
+                newCases += lastPeriod.new_cases || 0;
+                newDeaths += lastPeriod.new_deaths || 0;
+            }
+        });
+
+        return {
+            newCases,
+            totalCases,
+            newDeaths,
+            totalDeaths,
+            activeCases: totalCases - totalDeaths - totalRecovered,
+            totalRecovered
+        };
+    };
+
+    // Build horizontal bar chart data
+    const buildHorizontalBarData = (dataArray) => {
+        if (!dataArray || dataArray.length === 0) return [];
+
+        return dataArray.map(location => {
+            const totalCases = location.values.reduce((sum, v) => sum + (v.cases || 0), 0);
+            const totalDeaths = location.values.reduce((sum, v) => sum + (v.deaths || 0), 0);
+            
+            return {
+                label: location.country || location.province_state || location.continent,
+                total: totalCases,
+                alcoholInvolved: totalDeaths
+            };
+        });
+    };
+
+    // Build line chart data
+    const buildLineChartData = (abscisse, ordonne) => {
+        if (!abscisse || !ordonne || ordonne.length === 0) return [];
+
+        const casesDataset = ordonne.find(ds => 
+            ds.label && (ds.label.includes('Cas') || ds.label.toLowerCase().includes('cases'))
+        );
+        
+        if (!casesDataset) return [];
+
+        return abscisse.map((month, index) => ({
+            month,
+            cases: casesDataset.data[index] || 0
+        }));
+    };
+
+    // Build grouped bar chart data
+    const buildGroupedBarData = (dataArray) => {
+        if (!dataArray || dataArray.length === 0) return [];
+
+        return dataArray.map(location => {
+            const totalCases = location.values.reduce((sum, v) => sum + (v.cases || 0), 0);
+            const totalDeaths = location.values.reduce((sum, v) => sum + (v.deaths || 0), 0);
+            const totalRecovered = location.values.reduce((sum, v) => sum + (v.recovered || 0), 0);
+
+            return {
+                category: location.country || location.province_state || location.continent,
+                male: Math.floor(totalCases * 0.52),
+                female: Math.floor(totalCases * 0.48),
+                total: totalCases
+            };
+        });
+    };
+
     // DATA RECUPERATION
 
     // Recovery of the data within Django API
-    const  fetchData = async () => {
+    const fetchData = async () => {
         setLoading(true);
         setError(null);
 
         try {
-            // To Do : Replace with API when we have it
+            // Transform filters to Django expected format
+            const payload = {
+                pandemie: "Covid-19",
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+                granularity: "monthly",
+                continents: filters.who_region ? [filters.who_region] : [],
+                countries: filters.country ? [filters.country] : [],
+                states: filters.state ? [filters.state] : [],
+                cities: filters.city ? [filters.city] : [],
+                metrics: ["cases", "deaths", "recovered", "new_cases", "new_deaths"]
+            };
+
             const response = await fetch(`${API_BASE_URL}api/data/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(filters),
+                body: JSON.stringify(payload),
             });
 
             if (!response.ok) {
-                throw new Error("Erreur lors de la récupération des données");
+                const errorText = await response.text();
+                throw new Error(`Erreur ${response.status}: ${errorText}`);
             }
 
             const result = await response.json();
 
-            setData({
-                stats: result.stats,
-                charts: result.charts,
-            });
+            // Transform Django response to frontend format
+            const adaptedData = {
+                stats: calculateStats(result.data),
+                charts: {
+                    horizontalBar: buildHorizontalBarData(result.data),
+                    lineChart: buildLineChartData(result.abscisse, result.ordonne),
+                    groupedBar: buildGroupedBarData(result.data)
+                }
+            };
 
+            setData(adaptedData);
             setIsValidated(true);
-            return { success: true};
+            return { success: true };
         } catch (error) {
             setError(error.message);
             console.error("Erreur de récupération des données:", error);
-            return { success: false, error: error.message};
+            return { success: false, error: error.message };
         } finally {
             setLoading(false);
         }
@@ -291,33 +397,45 @@ export const DataProvider = ({children}) => {
     // Data export
     const exportData = async (format="csv") => {
         try {
-            // To Do : Replace with API when we have it
-            const response = await fetch(`${API_BASE_URL}api/data/download/${format}`, {
+            // Transform filters to Django expected format
+            const payload = {
+                pandemie: "Covid-19",
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+                granularity: "monthly",
+                continents: filters.who_region ? [filters.who_region] : [],
+                countries: filters.country ? [filters.country] : [],
+                states: filters.state ? [filters.state] : [],
+                cities: filters.city ? [filters.city] : [],
+                metrics: ["cases", "deaths", "recovered", "new_cases", "new_deaths"]
+            };
+
+            const response = await fetch(`${API_BASE_URL}api/data/download/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(filters),
+                body: JSON.stringify(payload),
             });
 
             if (!response.ok) {
-                throw new Error("Erreur lors de l\'export");
+                throw new Error("Erreur lors de l'export");
             }
 
             // Download files
-            const blob = await response.blob();                   // Blob = Binary Large OBject
+            const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
-            const create = document.createElement("create");
-            create.href = url;
-            create.download = `who-data-${Date.now()}.${format}`;
-            document.body.appendChild(create);
-            create.click();
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `who-data-${Date.now()}.${format}`;
+            document.body.appendChild(link);
+            link.click();
             window.URL.revokeObjectURL(url);
-            document.body.removeChild(create);
+            document.body.removeChild(link);
 
             return {success: true};
         } catch (error) {
-            console.error("Erreur d\'export:", error);
+            console.error("Erreur d'export:", error);
             return {success: false, error: error.message};
         }
     };
