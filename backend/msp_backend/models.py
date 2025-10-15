@@ -173,12 +173,12 @@ class Pandemic(models.Model):
 
 # model for Locations
 class Location(models.Model):
-    continent = models.CharField(
-        max_length=50,
-        null=False,
-        blank=False,
-        verbose_name="Continent"
-    )
+    # continent = models.CharField(
+    #     max_length=50,
+    #     null=False,
+    #     blank=False,
+    #     verbose_name="Continent"
+    # )
     
     country = models.CharField(
         max_length=100,
@@ -195,11 +195,11 @@ class Location(models.Model):
         help_text="Subdivision administrative si disponible"
     )
     
-    admin2_usa = models.CharField(
-        max_length=50,
+    city = models.CharField(
+        max_length=100,
         null=True,
         blank=True,
-        verbose_name="Admin2 USA",
+        verbose_name="Ville",
     )
     
     iso_code = models.CharField(
@@ -234,7 +234,7 @@ class Location(models.Model):
     )
     
     who_region = models.CharField(
-        max_length=50,
+        max_length=100,
         null=True,
         blank=True,
         verbose_name="Région WHO"
@@ -269,9 +269,11 @@ class Location(models.Model):
     @property
     def full_location(self):
         #localisation pays province
-        parts = [self.continent, self.country]
+        parts = [self.who_region if self.who_region else self.continent, self.country]
         if self.province_state:
             parts.append(self.province_state)
+        if self.city:
+            parts.append(self.city)
         return " > ".join(parts)
 
     @property
@@ -467,6 +469,14 @@ class PandemicData(models.Model):
         help_text="Calculé ou rapporté selon source"
     )
     
+    #taux d'incidence
+    incident_rate = models.FloatField(
+        null=True,
+        blank=True,
+        verbose_name="Taux d'incidence",
+        help_text="Nombre de nouveaux cas pour .... dhabitants"
+    )
+    
     created_at = models.DateTimeField(
         default=timezone.now,
         verbose_name="Date de création"
@@ -487,6 +497,10 @@ class PandemicData(models.Model):
         indexes = [
             models.Index(fields=['observation_date'], name='idx_time_series'),
             models.Index(fields=['file'], name='idx_file_tracking'),
+            #index pour optimiser les requêtes sur les métriques principales
+            models.Index(fields=['total_cases'], name='idx_total_cases'),
+            models.Index(fields=['total_deaths'], name='idx_total_deaths'),
+            models.Index(fields=['incident_rate'], name='idx_incident_rate'),
         ]
         
         constraints = [
@@ -499,7 +513,12 @@ class PandemicData(models.Model):
     def __str__(self):
         return f"{self.pandemic.pandemic_name} - {self.location} ({self.observation_date})"
 
-
+    @property
+    def mortality_rate(self):
+        #calcule le taux de mortalité en pourcentage (décès / cas)
+        if self.total_cases and self.total_cases > 0:
+            return round((self.total_deaths / self.total_cases) * 100, 2)
+        return 0.0
 
 # fonction pour valider les données (nbr de mort et nbr de cas)
     def clean(self):
@@ -519,5 +538,4 @@ class PandemicData(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
-
 

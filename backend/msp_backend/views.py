@@ -1,41 +1,94 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Avg
 from django.db.models.functions import TruncMonth
+from django.http import HttpResponse
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 from .models import Location, Pandemic, PandemicData
 from .serializers import (
     ContinentSerializer,
     CountrySerializer,
     StateSerializer,
-    Admin2Serializer,
+    Admin2Serializer,  # Keep for backward compatibility
     DataRequestSerializer,
     PandemicDataSerializer
 )
+from .throttling import BurstRateThrottle, DataAPIThrottle
 from collections import defaultdict
 from datetime import datetime
+import csv
 
 
+@extend_schema(
+    summary="liste des continents",
+    description="retourne tous les continents",
+    responses={
+        200: {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'id': {'type': 'string', 'example': 'europe'},
+                    'name': {'type': 'string', 'example': 'Europe'}
+                }
+            }
+        }
+    },
+    tags=['Filtres']
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([BurstRateThrottle])
 def get_continents(request):
-    #retourne la liste des continents
-    continents = Location.objects.values_list('continent', flat=True).distinct().order_by('continent')
+    #retourne la liste des régions who au lieu des continents
+    who_regions = Location.objects.values_list('who_region', flat=True).distinct().order_by('who_region')
     
     #formater en [{id, name}]
     data = [
-        {'id': continent.lower().replace(' ', '_'), 'name': continent}
-        for continent in continents if continent
+        {'id': region.lower().replace(' ', '_'), 'name': region}
+        for region in who_regions if region
     ]
     
     return Response(data, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    summary="liste des pays",
+    description="retourne les pays filtrés par continents",
+    parameters=[
+        OpenApiParameter(
+            name='continents',
+            type=str,
+            location=OpenApiParameter.QUERY,
+            description="continents :",
+            examples=[
+                OpenApiExample('un continent', value='europe'),
+                OpenApiExample('plusieurs continents', value='europe,asia,africa'),
+            ]
+        )
+    ],
+    responses={
+        200: {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'id': {'type': 'string', 'example': 'france'},
+                    'name': {'type': 'string', 'example': 'France'},
+                    'continent': {'type': 'string', 'example': 'europe'}
+                }
+            }
+        },
+    },
+    tags=['Filtres']
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([BurstRateThrottle])
 def get_countries(request):
-    #retourne la liste des pays filtrés par continents
+    #retourne la liste des pays filtrés par régions who même si le param sappelle continents pour garder la compatibilité api
     continents_param = request.query_params.get('continents', '')
     continents = [c.strip() for c in continents_param.split(',') if c.strip()]
     
@@ -50,21 +103,21 @@ def get_countries(request):
     #requête de base
     queryset = Location.objects.all()
     
-    #filtre par continents si pas world
+    #filtre par who_region
     if continents and continents[0] not in ['world', '*']:
         #normaliser les noms (première lettre en majuscule)
         continents_normalized = [c.replace('_', ' ').title() for c in continents]
-        queryset = queryset.filter(continent__in=continents_normalized)
+        queryset = queryset.filter(who_region__in=continents_normalized)
     
-    #récupérer les pays distincts avec leur continent
-    countries = queryset.values('country', 'continent').distinct().order_by('continent', 'country')
+    #récupérer les pays distincts avec leur région who
+    countries = queryset.values('country', 'who_region').distinct().order_by('who_region', 'country')
     
-    #formater en {id, name, continent}
+    #formater en {id, name, continent} on garde le nom continent dans la réponse pour compatibilité frontend
     data = [
         {
             'id': country['country'].lower().replace(' ', '_'),
             'name': country['country'],
-            'continent': country['continent'].lower().replace(' ', '_') if country['continent'] else None
+            'continent': country['who_region'].lower().replace(' ', '_') if country['who_region'] else None
         }
         for country in countries if country['country']
     ]
@@ -72,8 +125,40 @@ def get_countries(request):
     return Response(data, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    summary="liste des états/provinces",
+    description="retourne les états filtrés par pays",
+    parameters=[
+        OpenApiParameter(
+            name='countries',
+            type=str,
+            location=OpenApiParameter.QUERY,
+            description="pays",
+            examples=[
+                OpenApiExample('un pays', value='united_states'),
+                OpenApiExample('plusieurs pays', value='united_states,canada,mexico'),
+
+            ]
+        )
+    ],
+    responses={
+        200: {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'id': {'type': 'string', 'example': 'california'},
+                    'name': {'type': 'string', 'example': 'California'},
+                    'country': {'type': 'string', 'example': 'united_states'}
+                }
+            }
+        },
+    },
+    tags=['Filtres']
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([BurstRateThrottle])
 def get_states(request):
     # retourne la liste des états/provinces filtrés par pays
 
@@ -113,10 +198,12 @@ def get_states(request):
     return Response(data, status=status.HTTP_200_OK)
 
 
+@extend_schema(exclude=True)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_admin2(request):
-    #retourne la liste des admin2_usa filtrés par états
+@throttle_classes([BurstRateThrottle])
+def get_admin2(request):  # Keep function name for backward compatibility
+    #retourne la liste des villes filtrées par états
     states_param = request.query_params.get('states', '')
     states = [s.strip() for s in states_param.split(',') if s.strip()]
     
@@ -128,8 +215,8 @@ def get_admin2(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
     
-    #requête de base sur la table locations avec admin2_usa
-    queryset = Location.objects.exclude(admin2_usa__isnull=True).exclude(admin2_usa='')
+    #requête de base sur la table locations avec city
+    queryset = Location.objects.exclude(city__isnull=True).exclude(city='')
     
     #filtre par états si pas world
     if states and states[0] not in ['world', '*']:
@@ -137,26 +224,71 @@ def get_admin2(request):
         states_normalized = [s.replace('_', ' ').title() for s in states]
         queryset = queryset.filter(province_state__in=states_normalized)
     
-    #récupérer les admin2
-    admin2_list = queryset.values('admin2_usa', 'province_state').distinct().order_by('province_state', 'admin2_usa')
+    #récupérer les villes
+    cities_list = queryset.values('city', 'province_state').distinct().order_by('province_state', 'city')
     
     #formater en [{id, name, state}]
     data = [
         {
-            'id': admin2['admin2_usa'].lower().replace(' ', '_'),
-            'name': admin2['admin2_usa'],
-            'state': admin2['province_state'].lower().replace(' ', '_') if admin2['province_state'] else None
+            'id': city_data['city'].lower().replace(' ', '_'),
+            'name': city_data['city'],
+            'state': city_data['province_state'].lower().replace(' ', '_') if city_data['province_state'] else None
         }
-        for admin2 in admin2_list if admin2['admin2_usa']
+        for city_data in cities_list if city_data['city']
     ]
     
     return Response(data, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    summary="Données de pandémie",
+    description="retourne la data (uniquement mensuelle pour l'instant)selon les filtres géographiques et métriques",
+    request={
+        'application/json': {
+            'type': 'object',
+            'properties': {
+                'pandemie': {'type': 'string', 'example': 'Covid-19'},
+                'startDate': {'type': 'string', 'format': 'date', 'example': '2021-01-01'},
+                'endDate': {'type': 'string', 'format': 'date', 'example': '2021-12-31'},
+                'granularity': {'type': 'string', 'enum': ['monthly'], 'example': 'monthly'},
+                'continents': {'type': 'array', 'items': {'type': 'string'}, 'example': ['europe', 'asia']},
+                'countries': {'type': 'array', 'items': {'type': 'string'}, 'example': ['france', 'italy']},
+                'states': {'type': 'array', 'items': {'type': 'string'}, 'example': ['california']},
+                'cities': {'type': 'array', 'items': {'type': 'string'}, 'example': ['los_angeles']},
+                'metrics': {'type': 'array', 'items': {'type': 'string'}, 'example': ['cases', 'deaths']}
+            },
+            'required': ['pandemie', 'startDate', 'endDate', 'granularity', 'metrics']
+        }
+    },
+    responses={
+        200: {
+            'description': 'données pour chart.js',
+            'content': {
+                'application/json': {
+                    'example': {
+                        'abscisse': ['2020-01', '2020-02'],
+                        'ordonne': [
+                            {'label': 'Cas - France', 'data': [100, 200], 'type': 'line'}
+                        ],
+                        'data': [
+                            {
+                                'pandemie': 'COVID-19',
+                                'country': 'France',
+                                'values': [{'period': '2020-01', 'cases': 4000, 'deaths': 4000}]
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+    },
+    tags=['Données']
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([DataAPIThrottle, BurstRateThrottle])
 def get_pandemic_data(request):
-    # endpoint pour récupérer data de pandémie
+    #endpoint pour récupérer data de pandémie
     #vlidation du payload
     serializer = DataRequestSerializer(data=request.data)
     if not serializer.is_valid():
@@ -181,14 +313,14 @@ def get_pandemic_data(request):
     location_filter = Q()
     filter_applied = None
     
-    #priorité -- admin2
-    admin2_list = data.get('admin2', [])
-    if admin2_list and admin2_list[0] not in ['world', '*']:
-        admin2_normalized = [a.replace('_', ' ').title() for a in admin2_list]
-        location_filter = Q(location__admin2_usa__in=admin2_normalized)
-        filter_applied = 'admin2'
+    #priorité -- cities
+    cities_list = data.get('cities', [])
+    if cities_list and cities_list[0] not in ['world', '*']:
+        cities_normalized = [c.replace('_', ' ').title() for c in cities_list]
+        location_filter = Q(location__city__in=cities_normalized)
+        filter_applied = 'cities'
     
-    #priorité -- states (si admin2 vide)
+    #priorité -- states (si cities vide)
     elif not filter_applied:
         states_list = data.get('states', [])
         if states_list and states_list[0] not in ['world', '*']:
@@ -196,7 +328,7 @@ def get_pandemic_data(request):
             location_filter = Q(location__province_state__in=states_normalized)
             filter_applied = 'states'
     
-    #priorité -- countrie (si states et admin2 vides)
+    #priorité -- countries (si states et cities vides)
     if not filter_applied:
         countries_list = data.get('countries', [])
         if countries_list and countries_list[0] not in ['world', '*']:
@@ -204,12 +336,12 @@ def get_pandemic_data(request):
             location_filter = Q(location__country__in=countries_normalized)
             filter_applied = 'countries'
     
-    #priorité -- continents (si tout le reste est vide)
+    #priorité -- régions who (si tout le reste est vide)
     if not filter_applied:
         continents_list = data.get('continents', [])
         if continents_list and continents_list[0] not in ['world', '*']:
             continents_normalized = [c.replace('_', ' ').title() for c in continents_list]
-            location_filter = Q(location__continent__in=continents_normalized)
+            location_filter = Q(location__who_region__in=continents_normalized)
             filter_applied = 'continents'
     
     #appliquer le filtre si défini
@@ -223,17 +355,18 @@ def get_pandemic_data(request):
             period=TruncMonth('observation_date')
         ).values(
             'period',
-            'location__continent',
+            'location__who_region',
             'location__country',
             'location__province_state',
-            'location__admin2_usa',
+            'location__city',
             'location__population'
         ).annotate(
             total_cases=Sum('total_cases'),
             new_cases=Sum('new_cases'),
             total_deaths=Sum('total_deaths'),
             new_deaths=Sum('new_deaths'),
-            total_recovered=Sum('total_recovered')
+            total_recovered=Sum('total_recovered'),
+            incident_rate=Avg('incident_rate')
         ).order_by('period', 'location__country')
         
         #construction du dataset au fotmat chart.js
@@ -262,22 +395,29 @@ def build_chartjs_response(aggregated_data, metrics, pandemic_name):
         location_key = row['location__country']
         if row['location__province_state']:
             location_key = f"{row['location__country']} - {row['location__province_state']}"
-        if row['location__admin2_usa']:
-            location_key = f"{row['location__country']} - {row['location__province_state']} - {row['location__admin2_usa']}"
+        if row.get('location__city'):
+            location_key = f"{row['location__country']} - {row['location__province_state']} - {row['location__city']}"
        
 
 
         #stocker les métriques pour cette période
+        total_cases = row['total_cases'] or 0
+        total_deaths = row['total_deaths'] or 0
+        #calcul du taux de mortalité pour cette période
+        mortality_rate = round((total_deaths / total_cases) * 100, 2) if total_cases > 0 else 0.0
+        
         data_by_location[location_key][period_str] = {
-            'cases': row['total_cases'] or 0,
+            'cases': total_cases,
             'new_cases': row['new_cases'] or 0,
-            'deaths': row['total_deaths'] or 0,
+            'deaths': total_deaths,
             'new_deaths': row['new_deaths'] or 0,
             'recovered': row['total_recovered'] or 0,
-            'continent': row['location__continent'],
+            'incident_rate': row['incident_rate'] or 0,
+            'mortality_rate': mortality_rate,
+            'continent': row.get('location__who_region'),
             'country': row['location__country'],
             'province_state': row['location__province_state'],
-            'admin2': row['location__admin2_usa'],
+            'city': row.get('location__city'),
             'population': row['location__population']}
     
     #créer l'abscisse
@@ -295,7 +435,9 @@ def build_chartjs_response(aggregated_data, metrics, pandemic_name):
                 'new_cases': 'Nouveaux cas',
                 'deaths': 'Décès',
                 'new_deaths': 'Nouveaux décès',
-                'recovered': 'Guérisons'
+                'recovered': 'Guérisons',
+                'incident_rate': "Taux d'incidence",
+                'mortality_rate': 'Taux de mortalité (%)'
             }
             label = f"{metric_label_map.get(metric, metric)} - {location_key}"
             #extraire les valeurs dans l'ordre des périodes
@@ -316,7 +458,7 @@ def build_chartjs_response(aggregated_data, metrics, pandemic_name):
             'continent': None,
             'country': None,
             'province_state': None,
-            'admin2': None,
+            'city': None,
             'meta': {'population': None},
             'values': []
         }
@@ -329,7 +471,7 @@ def build_chartjs_response(aggregated_data, metrics, pandemic_name):
                 location_details['continent'] = period_data.get('continent')
                 location_details['country'] = period_data.get('country')
                 location_details['province_state'] = period_data.get('province_state')
-                location_details['admin2'] = period_data.get('admin2')
+                location_details['city'] = period_data.get('city')
                 location_details['meta']['population'] = period_data.get('population')
             
             #ajouter les valeurs pour cette période
@@ -339,7 +481,9 @@ def build_chartjs_response(aggregated_data, metrics, pandemic_name):
                 'new_cases': period_data.get('new_cases', 0),
                 'deaths': period_data.get('deaths', 0),
                 'new_deaths': period_data.get('new_deaths', 0),
-                'recovered': period_data.get('recovered', 0)
+                'recovered': period_data.get('recovered', 0),
+                'incident_rate': period_data.get('incident_rate', 0),
+                'mortality_rate': period_data.get('mortality_rate', 0.0)
             })
         detailed_data.append(location_details)
     
@@ -348,3 +492,140 @@ def build_chartjs_response(aggregated_data, metrics, pandemic_name):
         'ordonne': ordonne,
         'data': detailed_data
     }
+
+
+
+@extend_schema(exclude=True)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+# méthode ppour télécharger les données en csv
+def download_pandemic_data_csv(request):
+    serializer = DataRequestSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    data = serializer.validated_data
+    
+    #récupérer la pandémie
+    try:
+        pandemic = Pandemic.objects.get(pandemic_name=data['pandemie'])
+    except Pandemic.DoesNotExist:
+        return Response(
+            {'error': f'pandémie "{data["pandemie"]}" introuvable'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    #construction du query (on garde la meme logique que pour get_pandemic_data)
+    queryset = PandemicData.objects.filter(
+        pandemic=pandemic,
+        observation_date__gte=data['startDate'],
+        observation_date__lte=data['endDate']
+    )
+    
+    # filtres géographiques
+    location_filter = Q()
+    filter_applied = None
+    
+    #priorité -- cities
+    cities_list = data.get('cities', [])
+    if cities_list and cities_list[0] not in ['world', '*']:
+        cities_normalized = [c.replace('_', ' ').title() for c in cities_list]
+        location_filter = Q(location__city__in=cities_normalized)
+        filter_applied = 'cities'
+    
+    #priorité -- states
+    elif not filter_applied:
+        states_list = data.get('states', [])
+        if states_list and states_list[0] not in ['world', '*']:
+            states_normalized = [s.replace('_', ' ').title() for s in states_list]
+            location_filter = Q(location__province_state__in=states_normalized)
+            filter_applied = 'states'
+    
+    #priorité -- countries
+    if not filter_applied:
+        countries_list = data.get('countries', [])
+        if countries_list and countries_list[0] not in ['world', '*']:
+            countries_normalized = [c.replace('_', ' ').title() for c in countries_list]
+            location_filter = Q(location__country__in=countries_normalized)
+            filter_applied = 'countries'
+    
+    #priorité -- continents
+    if not filter_applied:
+        continents_list = data.get('continents', [])
+        if continents_list and continents_list[0] not in ['world', '*']:
+            continents_normalized = [c.replace('_', ' ').title() for c in continents_list]
+            location_filter = Q(location__who_region__in=continents_normalized)
+            filter_applied = 'continents'
+    
+    #on applique le filtre
+    if filter_applied:
+        queryset = queryset.filter(location_filter)
+    
+    #agrégation mensuelle (pour le moment uniquement mensuelle)
+    if data['granularity'] == 'monthly':
+        aggregated = queryset.annotate(
+            #truncMonth pour grouper par mois
+            period=TruncMonth('observation_date')
+        ).values(
+            'period',
+            'location__who_region',
+            'location__country',
+            'location__province_state',
+            'location__city',
+            'location__population'
+            #ajoute des champs utiles
+        ).annotate(
+            total_cases=Sum('total_cases'),
+            new_cases=Sum('new_cases'),
+            total_deaths=Sum('total_deaths'),
+            new_deaths=Sum('new_deaths'),
+            total_recovered=Sum('total_recovered')
+        ).order_by('period', 'location__country')
+        
+        #créer le CSV
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="pandemic_data_{pandemic.pandemic_name}_{data["startDate"]}_{data["endDate"]}.csv"'
+        
+        writer = csv.writer(response)
+        
+        #nom des colonnes du CSV
+        writer.writerow([
+            'Période',
+            'Pandémie',
+            'Région OMS',
+            'Pays',
+            'Province/État',
+            'Ville',
+            'Population',
+            'Cas totaux',
+            'Nouveaux cas',
+            'Décès totaux',
+            'Nouveaux décès',
+            'Guérisons totales'
+        ])
+        
+        # on complète les lignes du CSV
+        for row in aggregated:
+            writer.writerow([
+                row['period'].strftime('%Y-%m'),
+                pandemic.pandemic_name,
+                row.get('location__who_region') or '',
+                row['location__country'] or '',
+                row['location__province_state'] or '',
+                row.get('location__city') or '',
+                row['location__population'] or 0,
+                row['total_cases'] or 0,
+                row['new_cases'] or 0,
+                row['total_deaths'] or 0,
+                row['new_deaths'] or 0,
+                row['total_recovered'] or 0
+            ])
+            #on retourne le fichier
+        return response
+    
+    else:
+        #a voir si on implemente le mensuel et le daily par la suite
+        return Response(
+            {'error': 'granularité daily/weekly pas encore implémentée'},
+            status=status.HTTP_501_NOT_IMPLEMENTED
+        )

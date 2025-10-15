@@ -18,17 +18,23 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from .authentication import login, register, profile
 from .views import (
     get_continents,
     get_countries,
     get_states,
     get_admin2,
-    get_pandemic_data
+    get_pandemic_data,
+    download_pandemic_data_csv
 )
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    
+    #routes swagger pour la doc interactive
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     
     # route for authentication simple
     path('api/auth/', include([
@@ -48,5 +54,8 @@ urlpatterns = [
         
         #récupérer les données
         path('data/', get_pandemic_data, name='get_pandemic_data'),
+        
+        #télécharger les données en csv
+        path('data/download/', download_pandemic_data_csv, name='download_pandemic_data_csv'),
     ])),
 ]
