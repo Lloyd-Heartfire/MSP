@@ -1,0 +1,145 @@
+/* CSS variables for the light and dark theme */
+
+/* Import of the Fira Sans font after Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+    /* Principal Font */
+    --font-family: 'Fira Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+    /* OMS Colors */
+    --who-blue: #017AB1;
+    --who-light-blue: #ABFAF0;
+
+    /* LIGHT MODE */
+    /* Background */
+    --primary-bg: #FBFBFB;   /* General background */
+    --secondary-bg: #FBFBFB; /* Sections */
+    --card-bg: #FBFBFB;      /* Cards */
+
+    /* Text */
+    --text-primary: #000000;   /* Principal text */
+    --text-secondary: #000000; /* Secondary title */
+    --text-muted: #6A6A6A;     /* Placeholder & legends */
+    --text-white: #FBFBFB;     /* When selected */
+
+    /* Borders */
+    --border-color: #017AB1;
+    --border-light: #E0E0E0;
+    --border-card: #017AB1;
+
+    /* Shadows */
+    --shadow: rgba(0, 0, 0, 0.08);
+    --shadow-hover: rgba(0, 0, 0, 0.15);
+
+    /* Button colors */
+    --button-primary: #017AB1;
+    --button-primary-hover: #015F8C;
+    --button-secondary: #F5F5F5;
+    --button-secondary-hover: #E8E8E8;
+
+    /* Focus */
+    --focus-border: #03ABE9;
+    --focus-ring: 0 0 0 3px rgba(3, 171, 233, 0.35);
+
+    /* Dropdown menu */
+    --menu-bg: #FBFBFB;
+    --menu-item-hover: #FBFBFB;
+    --menu-item-selected: #017AB1;
+    --menu-item-selected-text: #000000;
+
+    /* Stats colors */
+    --stat-new-cases: #938E07;
+    --stat-total-cases: #938E07;
+    --stat-new-deaths: #BC0707;
+    --stat-total-deaths: #BC0707;
+    --stat-active-cases: #C98912;
+    --stat-total-recovered: #066C06;
+
+    /* Chart */
+    --chart-yellow: #938E07;
+    --chart-red: #BC0707;
+    --chart-orange: #C98912;
+    --chart-green: #066C06;
+    --chart-blue-primary: #017AB1;
+    --chart-blue-light: #ABFAF0;
+    --chart-bg: #FBFBFB;
+    --chart-grid: #FBFBFB;
+    --chart-axis: #666666;
+
+    /* Spacing */
+    --spacing-xxs: 4px;
+    --spacing-xs: 6px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 24px;
+    --spacing-xxl: 32px;
+
+    /* Border radius */
+    --radius-sm: 8px;
+    --radius-md: 10px; /* True radius of the maquette */
+    --radius-lg: 14px;
+
+    /* Typography */
+    --font-size-xs: 12px;
+    --font-size-sm: 14px;
+    --font-size-md: 16px;
+    --font-size-lg: 18px;
+    --font-size-xl: 22px;
+    --font-size-xxl: 28px;
+    
+    /* Fat (Graisse) Typography */
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    /* Transitions */
+    --transition-fast: 120ms ease;
+    --transition-medium: 220ms ease;
+
+    /* Z-index */
+    --z-dropdown: 1000;
+    --z-modal: 1100;
+    --z-toast: 1200;
+}
+
+/* DARK MODE */
+[data-theme="dark"] {
+    /* Background */
+    --primary-bg: #001818;   /* General background */
+    --secondary-bg: #001818; /* Sections */
+    --card-bg: #001818;      /* Cards */
+
+    /* Text */
+    --text-primary: #FBFBFB;   /* Principal text */
+    --text-secondary: #FBFBFB; /* Secondary title */
+    --text-muted: #FBFBFB;     /* Legends */
+
+    /* Borders */
+    --border-color: #004948;
+    --border-light: #003838;
+    --border-card: #004948;
+
+    /* Shadows */
+    --shadow: rgba(0, 0, 0, 0.35);
+    --shadow-hover: rgba(0, 0, 0, 0.55);
+
+    /* Button colors */
+    --button-primary: #017AB1;
+    --button-primary-hover: #019DD6;
+    --button-secondary: #003838;
+    --button-secondary-hover: #004948;
+
+    /* Dropdown menu */
+    --menu-bg: #031F20;
+    --menu-item-hover: #0A3B3C;
+    --menu-item-selected: #0E5D5D;
+    --menu-item-selected-text: #FBFBFB;
+
+    /* Chart */
+    --chart-bg: #002020;
+    --chart-grid: #003838;
+    --chart-axis: #B0B0B0;
+}
