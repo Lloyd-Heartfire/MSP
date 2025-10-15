@@ -32,9 +32,9 @@ const Charts = () => {
   const { theme } = useTheme();
 
   // Ne rien afficher si les données n'ont pas été validées
-  if (!isValidated) {
-    return null;
-  }
+  // if (!isValidated) {
+  //   return null;
+  // }
 
   return (
     <div className="charts-container">
