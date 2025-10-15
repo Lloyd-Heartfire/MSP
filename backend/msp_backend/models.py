@@ -539,3 +539,4 @@ class PandemicData(models.Model):
         self.clean()
         super().save(*args, **kwargs)
 
+
