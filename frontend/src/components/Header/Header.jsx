@@ -26,12 +26,12 @@ const Header = () => {
             <img className="theme-icon moon-icon" width="20" height="20" src="/src/assets/logos/moon.png" alt="Mode sombre" />
           </div>
           
-          <div className="language">
+          {/* <div className="language">
             <span className="flag">
               <img width="24" height="24"  src="/src/assets/flags/en.png" alt="EN" />
             </span>
             <span>EN</span>
-          </div>
+          </div> */}
         </div>
       </header>
   );

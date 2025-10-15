@@ -6,16 +6,16 @@ import React, {createContext, useState, useContext} from "react";
 const DataContext = createContext();
 
 // To Do : Replace with API when we have it
-const API_BASE_URL = "http://localhost:8000/api";
+const API_BASE_URL = "http://localhost:8000/";
 
 // Provider
 export const DataProvider = ({children}) => {
     // State of filters selectable
     const [filters, setFilters] = useState({
-        pandemic: null,
+        // pandemic: null,
         who_region: null,
         country: null,
-        province: null,
+        state: null,
         city: null,
         startDate: "2020-03-01",
         endDate: "2022-03-01",
@@ -24,10 +24,10 @@ export const DataProvider = ({children}) => {
 
     // State for availbale option for the dropdown
     const [availableOptions, setAvailableOptions] = useState({
-        pandemics: [],
+        // pandemics: [],
         who_regions: [],
         countries: [],
-        provinces: [],
+        states: [],
         city: [],
     });
 
@@ -51,10 +51,10 @@ export const DataProvider = ({children}) => {
     // Loading state
     const [loading, setLoading] = useState(false);
     const [loadingOptions, setLoadingOptions] = useState({
-        pandemics: false,
+        // pandemics: false,
         who_regions: false,
         countries: false,
-        provinces: false,
+        states: false,
         city: false,
     });
     const [error, setError] = useState(null);
@@ -63,32 +63,32 @@ export const DataProvider = ({children}) => {
     // FUNCTION FOR DROPDOWN OPTIONS
 
     // Load the list of pandemics
-    const fetchPandemics = async () => {
-        setLoadingOptions((prev) => ({ ...prev, pandemics: true}));
-        try {
-            // To Do: Replace with API when we have it
-            const response = await fetch(`${API_BASE_URL}/pandemics/`);
+    // const fetchPandemics = async () => {
+    //     setLoadingOptions((prev) => ({ ...prev, pandemics: true}));
+    //     try {
+    //         // To Do: Replace with API when we have it
+    //         const response = await fetch(`${API_BASE_URL}pandemics/`);
 
-            if (!response.ok) throw new Error('Erreur de chargement des pandémies');
+    //         if (!response.ok) throw new Error('Erreur de chargement des pandémies');
 
-            const result = await response.json();
-            setAvailableOptions((prev) => ({ ...prev, pandemics: result}));
+    //         const result = await response.json();
+    //         setAvailableOptions((prev) => ({ ...prev, pandemics: result}));
 
-            return {success: true, data: result};
-        } catch (error) {
-            console.error("Erreur fetchPandemics:", error);
-            return { success: false, error: error.message};
-        } finally {
-            setLoadingOptions((prev) => ({ ...prev, pandemics: false}));
-        }
-    };
+    //         return {success: true, data: result};
+    //     } catch (error) {
+    //         console.error("Erreur fetchPandemics:", error);
+    //         return { success: false, error: error.message};
+    //     } finally {
+    //         setLoadingOptions((prev) => ({ ...prev, pandemics: false}));
+    //     }
+    // };
 
     // Load the list of the OMS regions
     const fetchRegions = async () => {
         setLoadingOptions((prev) => ({ ...prev, who_regions: true}));
         try {
             // To Do: Replace with API when we have it
-            const response = await fetch(`${API_BASE_URL}/who_regions/`);
+            const response = await fetch(`${API_BASE_URL}api/continents/`);
 
             if (!response.ok) throw new Error('Erreur de chargement des régions');
 
@@ -105,8 +105,8 @@ export const DataProvider = ({children}) => {
     };
 
     // Load the countries
-    const fetchCountries = async (who_regionId) => {
-        if (!who_regionId) {
+    const fetchCountries = async (who_region) => {
+        if (!who_region) {
             setAvailableOptions((prev) => ({ ...prev, countries: [] }));
             return;
         }
@@ -114,7 +114,7 @@ export const DataProvider = ({children}) => {
         setLoadingOptions((prev) => ({ ...prev, countries: true }));
         try {
             // To Do: Replace with API when we have it
-            const response = await fetch(`${API_BASE_URL}/countries/?who_region_id=${who_regionId}`);
+            const response = await fetch(`${API_BASE_URL}api/countries/?continents=${who_region}`);
 
             if (!response.ok) throw new Error('Erreur de chargement des pays');
 
@@ -131,42 +131,42 @@ export const DataProvider = ({children}) => {
     };
 
     // Load the provinces / states
-    const fetchProvinces = async (countryId) => {
-        if (!countryId) {
-            setAvailableOptions((prev) => ({ ...prev, provinces: [] }));
+    const fetchStates = async (country) => {
+        if (!country) {
+            setAvailableOptions((prev) => ({ ...prev, states: [] }));
             return;
         }
 
-        setLoadingOptions((prev) => ({ ...prev, provinces: true }));
+        setLoadingOptions((prev) => ({ ...prev, states: true }));
         try {
             // To Do: Replace with API when we have it
-            const response = await fetch(`${API_BASE_URL}/provinces/?country_id=${countryId}`);
+            const response = await fetch(`${API_BASE_URL}api/states/?country_id=${country}`);
 
             if (!response.ok) throw new Error('Erreur de chargement des provinces');
 
             const data = await response.json();
-            setAvailableOptions((prev) => ({ ...prev, provinces: data}));
+            setAvailableOptions((prev) => ({ ...prev, states: data}));
 
             return {success: true, data};
         } catch (error) {
-            console.error("Erreur fetchProvinces:", error);
+            console.error("Erreur fetchStates:", error);
             return { success: false, error: error.message};
         } finally {
-            setLoadingOptions((prev) => ({ ...prev, provinces: false}));
+            setLoadingOptions((prev) => ({ ...prev, states: false}));
         }
     };
 
     // Load the countries
-    const fetchCity = async (provinceId) => {
-        if (!provinceId) {
+    const fetchCity = async (state) => {
+        if (!state) {
             setAvailableOptions((prev) => ({ ...prev, city: [] }));
             return;
         }
 
-        setLoadingOptions((prev) => ({ ...prev, countries: true }));
+        setLoadingOptions((prev) => ({ ...prev, city: true }));
         try {
             // To Do: Replace with API when we have it
-            const response = await fetch(`${API_BASE_URL}/city/?province_id=${provinceId}`);
+            const response = await fetch(`${API_BASE_URL}api/admin2/?state_id=${state}`);
 
             if (!response.ok) throw new Error('Erreur de chargement des city');
 
@@ -192,7 +192,7 @@ export const DataProvider = ({children}) => {
             // Cascading reset if region change
             if (newFilters.who_region !== undefined && newFilters.who_region !== prev.who_region) {
                 updated.country = null;
-                updated.province = null;
+                updated.state = null;
                 updated.city = null;
                 // Load the countries of a new region
                 if (newFilters.who_region) {
@@ -202,20 +202,20 @@ export const DataProvider = ({children}) => {
 
             // Cascading reset if country change
             if (newFilters.country !== undefined && newFilters.country !== prev.country) {
-                updated.province = null;
+                updated.state = null;
                 updated.city = null;
                 // Load the city of a new province
                 if (newFilters.country) {
-                    fetchProvinces(newFilters.country);
+                    fetchStates(newFilters.country);
                 }
             }
 
             // Cascading reset if province change
-            if (newFilters.province !== undefined && newFilters.province !== prev.province) {
+            if (newFilters.state !== undefined && newFilters.state !== prev.state) {
                 updated.city = null;
                 // Load the city of a new province
-                if (newFilters.province) {
-                    fetchCity(newFilters.province);
+                if (newFilters.state) {
+                    fetchCity(newFilters.state);
                 }
             }
 
@@ -229,10 +229,10 @@ export const DataProvider = ({children}) => {
     // Complete regeneration of the filters
     const resetFilters = () => {
         setFilters({
-            pandemic: null,
+            // pandemic: null,
             who_region: null,
             country: null,
-            province: null,
+            state: null,
             city: null,
             startDate: "2020-03-01",
             endDate: "2022-03-01",
@@ -241,7 +241,7 @@ export const DataProvider = ({children}) => {
         setAvailableOptions((prev) => ({
             ...prev,
             countries: [],
-            provinces: [],
+            states: [],
             city: [],
         }));
         setIsValidated(false);
@@ -256,7 +256,7 @@ export const DataProvider = ({children}) => {
 
         try {
             // To Do : Replace with API when we have it
-            const response = await fetch(`${API_BASE_URL}/data/`, {
+            const response = await fetch(`${API_BASE_URL}api/data/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -292,7 +292,7 @@ export const DataProvider = ({children}) => {
     const exportData = async (format="csv") => {
         try {
             // To Do : Replace with API when we have it
-            const response = await fetch(`${API_BASE_URL}/export/${format}`, {
+            const response = await fetch(`${API_BASE_URL}api/data/download/${format}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -334,10 +334,10 @@ export const DataProvider = ({children}) => {
         loadingOptions,
 
         // Function for options loading
-        fetchPandemics,
+        // fetchPandemics,
         fetchRegions,
         fetchCountries,
-        fetchProvinces,
+        fetchStates,
         fetchCity,
 
         // Datavisualisation
