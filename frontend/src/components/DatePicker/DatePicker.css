@@ -60,73 +60,120 @@
 /* Slider container */
 .slider-container {
     margin-top: var(--spacing-xl);
+    padding: 0 10px;
 }
 
 /* Label above the container */
 .slider-labels {
     display: flex;
     justify-content: space-between;
-    margin-bottom: var(--spacing-sm);
-    padding: 0 var(--spacing-xs);
+    margin-bottom: var(--spacing-md);
+    position: relative;
 }
 
 .slider-label-start,
 .slider-label-end {
-    background-color: var(--border-color);
+    background-color: var(--who-blue);
     color: var(--text-white);
-    padding: var(--spacing-xs) var(--spacing-sm);
+    padding: 6px 12px;
     border-radius: var(--radius-sm);
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
+    position: relative;
+}
+
+/* Triangle sous les labels */
+.slider-label-start::after,
+.slider-label-end::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid var(--who-blue);
 }
 
 /* Slider track */
 .slider-track {
     position: relative;
-    height: 8px;
+    height: 6px;
     background-color: var(--border-light);
-    border-radius: var(--radius-sm);
-    margin: var(--spacing-md);
+    border-radius: 3px;
+    margin: var(--spacing-lg) 0;
 }
 
-/* Input zone */
+/* Graduations sur le slider */
+.slider-graduations {
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    right: 0;
+    height: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.graduation-mark {
+    width: 1px;
+    height: 8px;
+    background-color: var(--text-primary);
+    border-radius: 0;
+}
+
+.graduation-mark:first-child,
+.graduation-mark:last-child {
+    height: 8px;
+    width: 1px;
+    background-color: var(--text-primary);
+}
+
+/* Input zone sélectionnée */
 .slider-range {
     position: absolute;
     height: 100%;
-    background-color: var(--border-color);
-    border-radius: var(--radius-sm);
+    background-color: var(--who-blue);
+    border-radius: 3px;
     pointer-events: none;
+    z-index: 2;
 }
 
 /* Input range */
 .slider-input {
     position: absolute;
     width: 100%;
-    height: 8px;
+    height: 6px;
     top: 0;
     left: 0;
     appearance: none;
     background: transparent;
     pointer-events: none;
     cursor: pointer;
+    z-index: 3;
 }
 
 .slider-input::-webkit-slider-thumb {
     appearance: none;
-    width: 20px;
-    height: 20px;
-    background-color: var(--text-primary);
-    border: 2px solid var(--border-color);
-    border-radius: var(--radius-md);
+    width: 24px;
+    height: 24px;
+    background-color: var(--card-bg);
+    border: 3px solid var(--who-blue);
+    border-radius: 50%;
     cursor: pointer;
     pointer-events: all;
-    box-shadow: 0 2px 6px var(--shadow);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     transition: all var(--transition-fast);
 }
 
 .slider-input::-webkit-slider-thumb:hover {
-    transform: scale(1.15);
-    box-shadow: 0 4px 12px var(--shadow);
+    transform: scale(1.1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
 }
 
 .slider-input::-webkit-slider-thumb:active {
@@ -134,27 +181,31 @@
 }
 
 .slider-input::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    background-color: var(--bg-primary);
+    width: 24px;
+    height: 24px;
+    background-color: var(--card-bg);
     border: 3px solid var(--who-blue);
-    border-radius: var(--radius-md);
+    border-radius: 50%;
     cursor: pointer;
     pointer-events: all;
-    box-shadow: 0 2px 6px var(--shadow);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     transition: all var(--transition-fast);
 }
 
 .slider-input::-moz-range-thumb:hover {
-    transform: scale(1.15);
-    box-shadow: 0 4px 12px var(--shadow);
+    transform: scale(1.1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.slider-input::-moz-range-thumb:active {
+    transform: scale(1.05);
 }
 
 /* Date marker (en bas) */
 .slider-ticks {
     display: flex;
     justify-content: space-between;
-    margin-top: var(--spacing-sm);
+    margin-top: var(--spacing-md);
     padding: 0 var(--spacing-xs);
 }
 
