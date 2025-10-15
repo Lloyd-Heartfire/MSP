@@ -7,6 +7,8 @@ WORKDIR /app
 # Install for PostgreSQL
 RUN apt-get update && apt-get install -y \
     libpq-dev \
+    git \
+    cron \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 

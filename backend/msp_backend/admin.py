@@ -58,14 +58,14 @@ class PandemicAdmin(admin.ModelAdmin):
 #AdminLocation
 @admin.register(Location)
 class LocationAdmin(admin.ModelAdmin):
-    list_display = ('country', 'province_state', 'admin2_usa', 'continent', 'iso_code', 'population', 'who_region')
-    list_filter = ('continent', 'who_region', 'country')
-    search_fields = ('country', 'province_state', 'admin2_usa', 'iso_code')
-    ordering = ('continent', 'country', 'province_state')
+    list_display = ('country', 'province_state', 'city', 'iso_code', 'population', 'who_region')
+    list_filter = ('who_region', 'country')
+    search_fields = ('country', 'province_state', 'city', 'iso_code')
+    ordering = ('country', 'province_state')
     
     fieldsets = (
         ('Localisation', {
-            'fields': ('continent', 'country', 'province_state', 'admin2_usa')
+            'fields': ('country', 'province_state', 'city')
         }),
         ('Codes et régions', {
             'fields': ('iso_code', 'who_region')
@@ -152,7 +152,7 @@ class PandemicDataAdmin(admin.ModelAdmin):
         'total_deaths',
         'new_deaths'
     )
-    list_filter = ('pandemic', 'observation_date', 'location__continent')
+    list_filter = ('pandemic', 'observation_date', 'location__who_region')
     search_fields = ('location__country', 'location__province_state', 'pandemic__pandemic_name')
     date_hierarchy = 'observation_date'
     ordering = ('-observation_date', 'location__country')

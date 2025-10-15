@@ -24,7 +24,7 @@ class StateSerializer(serializers.Serializer):
 
 
 class Admin2Serializer(serializers.Serializer):
-    #serializer admin2_usa
+    #serializer pour les villes
     id = serializers.CharField()
     name = serializers.CharField()
     state = serializers.CharField()
@@ -53,7 +53,7 @@ class DataRequestSerializer(serializers.Serializer):
         allow_empty=True,
         default=list
     )
-    admin2 = serializers.ListField(
+    cities = serializers.ListField(
         child=serializers.CharField(),
         required=False,
         allow_empty=True,
@@ -91,7 +91,7 @@ class DataRequestSerializer(serializers.Serializer):
             })
         
         #validation max 3 items par niveau sauf world ou *
-        for field in ['continents', 'countries', 'states', 'admin2']:
+        for field in ['continents', 'countries', 'states', 'cities']:
             values = data.get(field, [])
             
             #si world ou * alors on accepte
@@ -105,7 +105,7 @@ class DataRequestSerializer(serializers.Serializer):
                 })
         
         #validation des métriques connues
-        valid_metrics = ['cases', 'new_cases', 'deaths', 'new_deaths', 'recovered']
+        valid_metrics = ['cases', 'new_cases', 'deaths', 'new_deaths', 'recovered', 'incident_rate', 'mortality_rate']
         for metric in data.get('metrics', []):
             if metric not in valid_metrics:
                 raise serializers.ValidationError({
@@ -118,10 +118,11 @@ class DataRequestSerializer(serializers.Serializer):
 class PandemicDataSerializer(serializers.ModelSerializer):
     #serializer pour données de pandémie
     pandemic_name = serializers.CharField(source='pandemic.pandemic_name', read_only=True)
-    continent = serializers.CharField(source='location.continent', read_only=True)
+    #on garde le nom continent dans lapi pour compatibilité mais cest who_region en db
+    continent = serializers.CharField(source='location.who_region', read_only=True)
     country = serializers.CharField(source='location.country', read_only=True)
     province_state = serializers.CharField(source='location.province_state', read_only=True)
-    admin2 = serializers.CharField(source='location.admin2_usa', read_only=True)
+    admin2 = serializers.CharField(source='location.city', read_only=True)
     population = serializers.IntegerField(source='location.population', read_only=True)
     
     class Meta:
@@ -139,6 +140,7 @@ class PandemicDataSerializer(serializers.ModelSerializer):
             'new_deaths',
             'total_recovered',
             'active_cases',
+            'incident_rate',
             'population'
         ]
 
