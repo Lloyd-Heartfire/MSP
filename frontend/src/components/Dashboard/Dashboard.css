@@ -50,6 +50,17 @@
 
 .actions-row {
   width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+.actions-row > *:last-child {
+  margin-left: auto;
 }
 
 /* Section des résultats */
