@@ -27,7 +27,7 @@ ChartJS.register(
 );
 
 const Charts = () => {
-  const { data, isValidated } = useData();
+  const { data, isValidated, perCapita } = useData();
   const { theme } = useTheme();
 
   if (!isValidated || !data || !data.charts) {
@@ -40,8 +40,10 @@ const Charts = () => {
     <div className="charts-container">
       {/* Graphique 1 : Barres horizontales - Total Cases vs Total Deaths */}
       <div className="chart-wrapper chart-horizontal-bar">
-        <h3 className="chart-title">Total Cases vs Total Deaths by Region</h3>
-        <HorizontalBarChart data={horizontalBar} theme={theme} />
+        <h3 className="chart-title">
+          Total Cases vs Total Deaths by Region {perCapita && '(per 100k)'}
+        </h3>
+        <HorizontalBarChart data={horizontalBar} theme={theme} perCapita={perCapita} />
       </div>
 
       {/* Graphique 2 : Ligne - New Cases and New Deaths over time */}
@@ -52,31 +54,45 @@ const Charts = () => {
 
       {/* Graphique 3 : Barres verticales - Active Cases vs Recovered */}
       <div className="chart-wrapper chart-grouped-bar">
-        <h3 className="chart-title">Active Cases vs Recovered</h3>
-        <GroupedBarChart data={groupedBar} theme={theme} />
+        <h3 className="chart-title">
+          Active Cases vs Recovered {perCapita && '(per 100k)'}
+        </h3>
+        <GroupedBarChart data={groupedBar} theme={theme} perCapita={perCapita} />
       </div>
     </div>
   );
 };
 
 // Graphique 1 : Barres horizontales - Total Cases vs Total Deaths
-const HorizontalBarChart = ({ data, theme }) => {
+const HorizontalBarChart = ({ data, theme, perCapita }) => {
   if (!data || data.length === 0) {
     return <div className="chart-no-data">No data available</div>;
   }
 
+  // Calculer les données selon le mode per capita
+  const processedData = data.map(item => {
+    if (perCapita && item.population > 0) {
+      return {
+        ...item,
+        totalCases: (item.totalCases / item.population) * 100000,
+        totalDeaths: (item.totalDeaths / item.population) * 100000
+      };
+    }
+    return item;
+  });
+
   const chartData = {
-    labels: data.map(item => item.label) || [],
+    labels: processedData.map(item => item.label) || [],
     datasets: [
       {
-        label: 'Total Cases',
-        data: data.map(item => item.totalCases) || [],
+        label: `Total Cases${perCapita ? ' (per 100k)' : ''}`,
+        data: processedData.map(item => item.totalCases) || [],
         backgroundColor: theme === 'dark' ? '#019DD6' : '#017AB1',
         borderRadius: 4,
       },
       {
-        label: 'Total Deaths',
-        data: data.map(item => item.totalDeaths) || [],
+        label: `Total Deaths${perCapita ? ' (per 100k)' : ''}`,
+        data: processedData.map(item => item.totalDeaths) || [],
         backgroundColor: '#BC0707',
         borderRadius: 4,
       },
@@ -108,7 +124,11 @@ const HorizontalBarChart = ({ data, theme }) => {
             if (label) {
               label += ': ';
             }
-            label += new Intl.NumberFormat('en-US').format(context.parsed.x);
+            if (perCapita) {
+              label += context.parsed.x.toFixed(2);
+            } else {
+              label += new Intl.NumberFormat('en-US').format(context.parsed.x);
+            }
             return label;
           }
         }
@@ -121,6 +141,9 @@ const HorizontalBarChart = ({ data, theme }) => {
           color: theme === 'dark' ? '#FFFFFF' : '#000000',
           font: { family: 'Fira Sans' },
           callback: function(value) {
+            if (perCapita) {
+              return value.toFixed(0);
+            }
             return new Intl.NumberFormat('en-US', { notation: 'compact' }).format(value);
           }
         },
@@ -239,23 +262,35 @@ const LineChartComponent = ({ data, theme }) => {
 };
 
 // Graphique 3 : Barres verticales - Active Cases vs Recovered
-const GroupedBarChart = ({ data, theme }) => {
+const GroupedBarChart = ({ data, theme, perCapita }) => {
   if (!data || data.length === 0) {
     return <div className="chart-no-data">No data available</div>;
   }
 
+  // Calculer les données selon le mode per capita
+  const processedData = data.map(item => {
+    if (perCapita && item.population > 0) {
+      return {
+        ...item,
+        activeCases: (item.activeCases / item.population) * 100000,
+        totalRecovered: (item.totalRecovered / item.population) * 100000
+      };
+    }
+    return item;
+  });
+
   const chartData = {
-    labels: data.map(item => item.category) || [],
+    labels: processedData.map(item => item.category) || [],
     datasets: [
       {
-        label: 'Active Cases',
-        data: data.map(item => item.activeCases) || [],
+        label: `Active Cases${perCapita ? ' (per 100k)' : ''}`,
+        data: processedData.map(item => item.activeCases) || [],
         backgroundColor: '#C98912',
         borderRadius: 4,
       },
       {
-        label: 'Total Recovered',
-        data: data.map(item => item.totalRecovered) || [],
+        label: `Total Recovered${perCapita ? ' (per 100k)' : ''}`,
+        data: processedData.map(item => item.totalRecovered) || [],
         backgroundColor: '#066C06',
         borderRadius: 4,
       },
@@ -286,7 +321,11 @@ const GroupedBarChart = ({ data, theme }) => {
             if (label) {
               label += ': ';
             }
-            label += new Intl.NumberFormat('en-US').format(context.parsed.y);
+            if (perCapita) {
+              label += context.parsed.y.toFixed(2);
+            } else {
+              label += new Intl.NumberFormat('en-US').format(context.parsed.y);
+            }
             return label;
           }
         }
@@ -308,6 +347,9 @@ const GroupedBarChart = ({ data, theme }) => {
           color: theme === 'dark' ? '#FFFFFF' : '#000000',
           font: { family: 'Fira Sans' },
           callback: function(value) {
+            if (perCapita) {
+              return value.toFixed(0);
+            }
             return new Intl.NumberFormat('en-US', { notation: 'compact' }).format(value);
           }
         },

@@ -60,17 +60,19 @@ export const DataProvider = ({children}) => {
     const [error, setError] = useState(null);
     const [isValidated, setIsValidated] = useState(false);
 
+    const [perCapita, setPerCapita] = useState(false);
+
     // Récupère le token depuis localStorage
     const getAuthHeaders = () => {
         const token = localStorage.getItem("who-token");
         const headers = {
             'Content-Type': 'application/json',
         };
-        
+
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
-        
+
         return headers;
     };
 
@@ -312,10 +314,12 @@ export const DataProvider = ({children}) => {
 
     return dataArray.map(location => {
         const lastPeriod = location.values[location.values.length - 1];
+        const population = location.meta?.population || 0;
             return {
                 label: location.country || location.province_state || location.continent,
                 totalCases: lastPeriod?.cases || 0,
-                totalDeaths: lastPeriod?.deaths || 0
+                totalDeaths: lastPeriod?.deaths || 0,
+                population: population
             };
         }).slice(0, 15);
     };
@@ -346,11 +350,13 @@ export const DataProvider = ({children}) => {
         return dataArray.map(location => {
             const lastPeriod = location.values[location.values.length - 1];
             const activeCases = (lastPeriod?.cases || 0) - (lastPeriod?.deaths || 0) - (lastPeriod?.recovered || 0);
+            const population = location.meta?.population || 0;
 
             return {
                 category: location.country || location.province_state || location.continent,
                 activeCases: activeCases > 0 ? activeCases : 0,
-                totalRecovered: lastPeriod?.recovered || 0
+                totalRecovered: lastPeriod?.recovered || 0,
+                population: population
             };
         }).slice(0, 10);
     };
@@ -490,6 +496,10 @@ export const DataProvider = ({children}) => {
         // Fetching and actions
         fetchData,
         exportData,
+
+        // Changing metrics
+        perCapita: filters.change_metric,
+        setPerCapita: (value) => updateFilters({ change_metric: value }),
     };
 
     return (
