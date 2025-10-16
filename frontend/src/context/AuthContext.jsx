@@ -35,7 +35,7 @@ export const AuthProvider = ({children}) => {
     };
 
     // Connexion
-    const login = async (email, password) => {
+    const login = async (username, password) => {
         try {
             // To Do : Replace with API when we have it 
             const response = await fetch('http://localhost:8000/api/auth/login/', {
@@ -43,7 +43,7 @@ export const AuthProvider = ({children}) => {
                 headers: {
                     "Content-Type": 'application/json',
                 },
-                body: JSON.stringify({email, password}),
+                body: JSON.stringify({username, password}),
             });
 
             if (!response.ok) {
@@ -53,9 +53,9 @@ export const AuthProvider = ({children}) => {
             const data = await response.json();
 
             // Token storage and user informations
-            setToken(data.token);
+            setToken(data.access);
             setUser(data.user);
-            localStorage.setItem("who-token", data.token);
+            localStorage.setItem("who-token", data.access);
             localStorage.setItem("who-user", JSON.stringify(data.user));
 
             return {success: true};

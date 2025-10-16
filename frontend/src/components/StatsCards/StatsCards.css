@@ -1,9 +1,9 @@
 /* Cards container */
 .stats-cards-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--spacing-lg);
-    margin-bottom: var(--spacing-xxl);
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
     animation: fadeIn var(--transition-medium);
 }
 
@@ -11,14 +11,19 @@
 .stats-card {
     background-color: var(--card-bg);
     border: 2px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
+    border-top: none;
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-sm);
-    transition: all var(--transition-medium);
+    align-items: center;
+    text-align: center;
+    gap: var(--spacing-xs);
+    transition: all var(--transition-fast);
     position: relative;
     overflow: hidden;
+    min-height: 85px;
+    justify-content: center;
 }
 
 .stats-card::before {
@@ -27,66 +32,124 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
+    height: 3px;
     transition: height var(--transition-fast);
 }
 
 .stats-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 16px var(--shadow-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-hover);
 }
 
 .stats-card:hover::before {
-    height:6px;
+    height: 4px;
 }
 
 /* Card title */
-.stats-new-cases {
-    font-size: var(--font-size-md);
+.stats-card-title {
+    font-family: 'Fira Sans', sans-serif;
+    font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
-    color: var(--stat-new-cases);
+    color: var(--text-secondary);
     margin: 0;
-}
-
-.stats-total-cases {
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-medium);
-    color: var(--stat-total-cases);
-    margin: 0;
-}
-
-.stats-new-deaths {
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-medium);
-    color: var(--stat-new-deaths);
-    margin: 0;
-}
-
-.stats-total-deaths {
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-medium);
-    color: var(--stat-total-deaths);
-    margin: 0;
-}
-
-.stats-active-cases {
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-medium);
-    color: var(--stat-active-cases);
-    margin: 0;
-}
-
-.stats-total-recovered {
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-medium);
-    color: var(--stat-total-recovered);
-    margin: 0;
+    line-height: 1.3;
 }
 
 /* Card value */
 .stats-card-value {
-    font-size: var(--font-size-huge);
+    font-family: 'Fira Sans', sans-serif;
+    font-size: var(--font-size-xl);
     font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
     margin: 0;
+    line-height: 1;
+}
+
+/* Couleurs spécifiques - New Cases */
+.stat-new-cases::before {
+    background-color: var(--stat-new-cases);
+}
+
+.stat-new-cases .stats-card-title {
+    color: var(--stat-new-cases);
+}
+
+.stat-new-cases .stats-card-value {
+    color: var(--stat-new-cases);
+}
+
+/* Couleurs spécifiques - Total Cases */
+.stat-total-cases::before {
+    background-color: var(--stat-total-cases);
+}
+
+.stat-total-cases .stats-card-title {
+    color: var(--stat-total-cases);
+}
+
+.stat-total-cases .stats-card-value {
+    color: var(--stat-total-cases);
+}
+
+/* Couleurs spécifiques - New Deaths */
+.stat-new-deaths::before {
+    background-color: var(--stat-new-deaths);
+}
+
+.stat-new-deaths .stats-card-title {
+    color: var(--stat-new-deaths);
+}
+
+.stat-new-deaths .stats-card-value {
+    color: var(--stat-new-deaths);
+}
+
+/* Couleurs spécifiques - Total Deaths */
+.stat-total-deaths::before {
+    background-color: var(--stat-total-deaths);
+}
+
+.stat-total-deaths .stats-card-title {
+    color: var(--stat-total-deaths);
+}
+
+.stat-total-deaths .stats-card-value {
+    color: var(--stat-total-deaths);
+}
+
+/* Couleurs spécifiques - Active Cases */
+.stat-active-cases::before {
+    background-color: var(--stat-active-cases);
+}
+
+.stat-active-cases .stats-card-title {
+    color: var(--stat-active-cases);
+}
+
+.stat-active-cases .stats-card-value {
+    color: var(--stat-active-cases);
+}
+
+/* Couleurs spécifiques - Total Recovered */
+.stat-total-recovered::before {
+    background-color: var(--stat-total-recovered);
+}
+
+.stat-total-recovered .stats-card-title {
+    color: var(--stat-total-recovered);
+}
+
+.stat-total-recovered .stats-card-value {
+    color: var(--stat-total-recovered);
+}
+
+/* Animation d'apparition */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

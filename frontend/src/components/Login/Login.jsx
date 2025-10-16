@@ -6,7 +6,7 @@ import Header from '../Header/Header.jsx';
 import Footer from '../Footer/Footer.jsx';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,7 +19,7 @@ const Login = () => {
     setError('');
     setLoading(true);
 
-    const result = await login(email, password);
+    const result = await login(username, password);
     
     if (result.success) {
       navigate('/');
@@ -40,13 +40,14 @@ const Login = () => {
           <form onSubmit={handleSubmit} className="login-form">
             <div className="form-group">
               <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(inputEvent) => setEmail(inputEvent.target.value)}
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(inputEvent) => setUsername(inputEvent.target.value)}
                 required
                 className="form-input"
                 disabled={loading}
+                autoComplete="username"
               />
             </div>
             <div className="form-group">
@@ -58,6 +59,7 @@ const Login = () => {
                 required
                 className="form-input"
                 disabled={loading}
+                autoComplete="current-password"
               />
             </div>
             

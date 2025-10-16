@@ -60,6 +60,17 @@ export const DataProvider = ({children}) => {
     const [error, setError] = useState(null);
     const [isValidated, setIsValidated] = useState(false);
 
+    // Récupère le token depuis localStorage
+    const getAuthHeaders = () => {
+        const token = localStorage.getItem("who-token");
+        return token ? {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        } : {
+            'Content-Type': 'application/json'
+        };
+    };
+
     // FUNCTION FOR DROPDOWN OPTIONS
 
     // Load the list of pandemics
@@ -86,7 +97,9 @@ export const DataProvider = ({children}) => {
     const fetchRegions = async () => {
         setLoadingOptions((prev) => ({ ...prev, who_regions: true}));
         try {
-            const response = await fetch(`${API_BASE_URL}api/continents/`);
+            const response = await fetch(`${API_BASE_URL}api/continents/`, {
+                headers: getAuthHeaders()
+            });
 
             if (!response.ok) throw new Error('Erreur de chargement des régions');
 
@@ -111,7 +124,9 @@ export const DataProvider = ({children}) => {
 
         setLoadingOptions((prev) => ({ ...prev, countries: true }));
         try {
-            const response = await fetch(`${API_BASE_URL}api/countries/?continents=${who_region}`);
+            const response = await fetch(`${API_BASE_URL}api/countries/?continents=${who_region}`, {
+                headers: getAuthHeaders()
+            });
 
             if (!response.ok) throw new Error('Erreur de chargement des pays');
 
@@ -136,7 +151,9 @@ export const DataProvider = ({children}) => {
 
         setLoadingOptions((prev) => ({ ...prev, states: true }));
         try {
-            const response = await fetch(`${API_BASE_URL}api/states/?countries=${country}`);
+            const response = await fetch(`${API_BASE_URL}api/states/?countries=${country}`, {
+                headers: getAuthHeaders()
+            });
 
             if (!response.ok) throw new Error('Erreur de chargement des provinces');
 
@@ -161,7 +178,9 @@ export const DataProvider = ({children}) => {
 
         setLoadingOptions((prev) => ({ ...prev, city: true }));
         try {
-            const response = await fetch(`${API_BASE_URL}api/admin2/?states=${state}`);
+            const response = await fetch(`${API_BASE_URL}api/admin2/?states=${state}`, {
+                headers: getAuthHeaders()
+            });
 
             if (!response.ok) throw new Error('Erreur de chargement des city');
 

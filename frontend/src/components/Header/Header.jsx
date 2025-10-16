@@ -9,6 +9,11 @@ const Header = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
+  // Gestion du clic sur le logo WHO pour retourner à l'accueil
+  const handleLogoClick = () => {
+    navigate('/');
+  };
+
   // Gestion du clic sur l'icône utilisateur
   const handleUserIconClick = () => {
     if (isAuthenticated) {
@@ -38,9 +43,9 @@ const Header = () => {
 
   return (
       <header className="header-container">
-        <div className="logo-container">
+        <div className="logo-container" onClick={handleLogoClick}>
           <div className="who-logo">
-            <img width="50" height="50" src='/src/assets/logos/who.png' />  
+            <img width="50" height="50" src='/src/assets/logos/who.png' alt="WHO Logo" />  
           </div>
           <div className="org-text">
             <span className="who-title">World Health</span>

@@ -1,5 +1,5 @@
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Q, Sum, Avg
@@ -39,7 +39,7 @@ import csv
     tags=['Filtres']
 )
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 @throttle_classes([BurstRateThrottle])
 def get_continents(request):
     #retourne la liste des régions who au lieu des continents
@@ -85,7 +85,7 @@ def get_continents(request):
     tags=['Filtres']
 )
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 @throttle_classes([BurstRateThrottle])
 def get_countries(request):
     #retourne la liste des pays filtrés par régions who même si le param sappelle continents pour garder la compatibilité api
@@ -157,7 +157,7 @@ def get_countries(request):
     tags=['Filtres']
 )
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 @throttle_classes([BurstRateThrottle])
 def get_states(request):
     # retourne la liste des états/provinces filtrés par pays
@@ -200,7 +200,7 @@ def get_states(request):
 
 @extend_schema(exclude=True)
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 @throttle_classes([BurstRateThrottle])
 def get_admin2(request):  # Keep function name for backward compatibility
     #retourne la liste des villes filtrées par états
@@ -285,7 +285,7 @@ def get_admin2(request):  # Keep function name for backward compatibility
     tags=['Données']
 )
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 @throttle_classes([DataAPIThrottle, BurstRateThrottle])
 def get_pandemic_data(request):
     #endpoint pour récupérer data de pandémie
@@ -497,7 +497,7 @@ def build_chartjs_response(aggregated_data, metrics, pandemic_name):
 
 @extend_schema(exclude=True)
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 # méthode ppour télécharger les données en csv
 def download_pandemic_data_csv(request):
     serializer = DataRequestSerializer(data=request.data)
