@@ -9,7 +9,7 @@
 
 /* Wrapper de chaque graphique */
 .chart-wrapper {
-  background-color: var(--chart-bg);
+  background-color: var(--card-bg);
   border: 2px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
@@ -22,11 +22,31 @@
   transform: translateY(-2px);
 }
 
+/* Titre du graphique */
+.chart-title {
+  margin-bottom: var(--spacing-md);
+  color: var(--text-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  font-family: 'Fira Sans', sans-serif;
+}
+
 /* Contenu du graphique */
 .chart-content {
   width: 100%;
   height: 400px;
   position: relative;
+}
+
+/* Message quand pas de données */
+.chart-no-data {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  font-family: 'Fira Sans', sans-serif;
+  font-size: var(--font-size-md);
 }
 
 /* Graphique à barres horizontales (prend toute la largeur en haut) */
@@ -42,4 +62,16 @@
 .chart-content canvas {
   max-width: 100%;
   height: 100% !important;
+}
+
+/* Animation d'apparition */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

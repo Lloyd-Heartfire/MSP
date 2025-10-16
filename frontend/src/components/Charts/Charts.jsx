@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { useData } from '../../context/DataContext';
 import { useTheme } from '../../context/ThemeContext';
 import {
@@ -15,7 +15,6 @@ import {
 import { Bar, Line } from 'react-chartjs-2';
 import './Charts.css';
 
-// Enregistrement des composants Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -31,26 +30,30 @@ const Charts = () => {
   const { data, isValidated } = useData();
   const { theme } = useTheme();
 
-  // Ne rien afficher si les données n'ont pas été validées
-  // if (!isValidated) {
-  //   return null;
-  // }
+  if (!isValidated || !data || !data.charts) {
+    return null;
+  }
+
+  const { horizontalBar, lineChart, groupedBar } = data.charts;
 
   return (
     <div className="charts-container">
       {/* Graphique à barres horizontales */}
       <div className="chart-wrapper chart-horizontal-bar">
-        <HorizontalBarChart data={data.charts.horizontalBar} theme={theme} />
+        <h3 className="chart-title">Cases by Region</h3>
+        <HorizontalBarChart data={horizontalBar} theme={theme} />
       </div>
 
       {/* Graphique en courbe */}
       <div className="chart-wrapper chart-line">
-        <LineChartComponent data={data.charts.lineChart} theme={theme} />
+        <h3 className="chart-title">Cases Over Time</h3>
+        <LineChartComponent data={lineChart} theme={theme} />
       </div>
 
       {/* Graphique à barres groupées */}
       <div className="chart-wrapper chart-grouped-bar">
-        <GroupedBarChart data={data.charts.groupedBar} theme={theme} />
+        <h3 className="chart-title">Cases by Demographics</h3>
+        <GroupedBarChart data={groupedBar} theme={theme} />
       </div>
     </div>
   );
@@ -58,22 +61,24 @@ const Charts = () => {
 
 // Graphique à barres horizontales
 const HorizontalBarChart = ({ data, theme }) => {
+  if (!data || data.length === 0) {
+    return <div className="chart-no-data">No data available</div>;
+  }
+
   const chartData = {
-    labels: data.map(item => item.name) || [],
+    labels: data.map(item => item.label) || [],
     datasets: [
       {
-        label: 'Total',
+        label: 'Total Cases',
         data: data.map(item => item.total) || [],
         backgroundColor: theme === 'dark' ? '#019DD6' : '#017AB1',
-        borderColor: '#017AB1',
-        borderWidth: 2,
+        borderRadius: 4,
       },
       {
-        label: 'Test Involved',
-        data: data.map(item => item.testInvolved) || [],
-        backgroundColor: theme === 'dark' ? '#D4F5F0' : '#ABFAF0',
-        borderColor: '#ABFAF0',
-        borderWidth: 2,
+        label: 'Deaths',
+        data: data.map(item => item.alcoholInvolved) || [],
+        backgroundColor: theme === 'dark' ? '#BC0707' : '#BC0707',
+        borderRadius: 4,
       },
     ],
   };
@@ -87,10 +92,7 @@ const HorizontalBarChart = ({ data, theme }) => {
         position: 'top',
         labels: {
           color: theme === 'dark' ? '#FFFFFF' : '#000000',
-          font: {
-            family: 'Fira Sans',
-            size: 12,
-          },
+          font: { family: 'Fira Sans', size: 12 },
         },
       },
       tooltip: {
@@ -100,36 +102,21 @@ const HorizontalBarChart = ({ data, theme }) => {
         borderColor: '#017AB1',
         borderWidth: 2,
         padding: 12,
-        bodyFont: {
-          family: 'Fira Sans',
-        },
-        titleFont: {
-          family: 'Fira Sans',
-          weight: 'bold',
-        },
       },
     },
     scales: {
       x: {
-        grid: {
-          color: theme === 'dark' ? '#003838' : '#E8E8E8',
-        },
-        ticks: {
+        grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
+        ticks: { 
           color: theme === 'dark' ? '#B0B0B0' : '#666666',
-          font: {
-            family: 'Fira Sans',
-          },
+          font: { family: 'Fira Sans' }
         },
       },
       y: {
-        grid: {
-          color: theme === 'dark' ? '#003838' : '#E8E8E8',
-        },
-        ticks: {
+        grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
+        ticks: { 
           color: theme === 'dark' ? '#B0B0B0' : '#666666',
-          font: {
-            family: 'Fira Sans',
-          },
+          font: { family: 'Fira Sans' }
         },
       },
     },
@@ -144,8 +131,12 @@ const HorizontalBarChart = ({ data, theme }) => {
 
 // Graphique en courbe
 const LineChartComponent = ({ data, theme }) => {
+  if (!data || data.length === 0) {
+    return <div className="chart-no-data">No data available</div>;
+  }
+
   const chartData = {
-    labels: data.map(item => item.date) || [],
+    labels: data.map(item => item.month) || [],
     datasets: [
       {
         label: 'Cases',
@@ -171,10 +162,7 @@ const LineChartComponent = ({ data, theme }) => {
         position: 'top',
         labels: {
           color: theme === 'dark' ? '#FFFFFF' : '#000000',
-          font: {
-            family: 'Fira Sans',
-            size: 12,
-          },
+          font: { family: 'Fira Sans', size: 12 },
         },
       },
       tooltip: {
@@ -184,36 +172,21 @@ const LineChartComponent = ({ data, theme }) => {
         borderColor: '#BC0707',
         borderWidth: 2,
         padding: 12,
-        bodyFont: {
-          family: 'Fira Sans',
-        },
-        titleFont: {
-          family: 'Fira Sans',
-          weight: 'bold',
-        },
       },
     },
     scales: {
       x: {
-        grid: {
-          color: theme === 'dark' ? '#003838' : '#E8E8E8',
-        },
-        ticks: {
+        grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
+        ticks: { 
           color: theme === 'dark' ? '#B0B0B0' : '#666666',
-          font: {
-            family: 'Fira Sans',
-          },
+          font: { family: 'Fira Sans' }
         },
       },
       y: {
-        grid: {
-          color: theme === 'dark' ? '#003838' : '#E8E8E8',
-        },
-        ticks: {
+        grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
+        ticks: { 
           color: theme === 'dark' ? '#B0B0B0' : '#666666',
-          font: {
-            family: 'Fira Sans',
-          },
+          font: { family: 'Fira Sans' }
         },
       },
     },
@@ -228,29 +201,30 @@ const LineChartComponent = ({ data, theme }) => {
 
 // Graphique à barres groupées
 const GroupedBarChart = ({ data, theme }) => {
+  if (!data || data.length === 0) {
+    return <div className="chart-no-data">No data available</div>;
+  }
+
   const chartData = {
     labels: data.map(item => item.category) || [],
     datasets: [
       {
-        label: 'Group 1',
-        data: data.map(item => item.group1) || [],
+        label: 'Male',
+        data: data.map(item => item.male) || [],
         backgroundColor: theme === 'dark' ? '#019DD6' : '#017AB1',
-        borderColor: '#017AB1',
-        borderWidth: 2,
+        borderRadius: 4,
       },
       {
-        label: 'Group 2',
-        data: data.map(item => item.group2) || [],
+        label: 'Female',
+        data: data.map(item => item.female) || [],
         backgroundColor: '#066C06',
-        borderColor: '#066C06',
-        borderWidth: 2,
+        borderRadius: 4,
       },
       {
-        label: 'Group 3',
-        data: data.map(item => item.group3) || [],
+        label: 'Total',
+        data: data.map(item => item.total) || [],
         backgroundColor: '#C98912',
-        borderColor: '#C98912',
-        borderWidth: 2,
+        borderRadius: 4,
       },
     ],
   };
@@ -263,10 +237,7 @@ const GroupedBarChart = ({ data, theme }) => {
         position: 'top',
         labels: {
           color: theme === 'dark' ? '#FFFFFF' : '#000000',
-          font: {
-            family: 'Fira Sans',
-            size: 12,
-          },
+          font: { family: 'Fira Sans', size: 12 },
         },
       },
       tooltip: {
@@ -276,36 +247,21 @@ const GroupedBarChart = ({ data, theme }) => {
         borderColor: '#017AB1',
         borderWidth: 2,
         padding: 12,
-        bodyFont: {
-          family: 'Fira Sans',
-        },
-        titleFont: {
-          family: 'Fira Sans',
-          weight: 'bold',
-        },
       },
     },
     scales: {
       x: {
-        grid: {
-          color: theme === 'dark' ? '#003838' : '#E8E8E8',
-        },
-        ticks: {
+        grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
+        ticks: { 
           color: theme === 'dark' ? '#B0B0B0' : '#666666',
-          font: {
-            family: 'Fira Sans',
-          },
+          font: { family: 'Fira Sans' }
         },
       },
       y: {
-        grid: {
-          color: theme === 'dark' ? '#003838' : '#E8E8E8',
-        },
-        ticks: {
+        grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
+        ticks: { 
           color: theme === 'dark' ? '#B0B0B0' : '#666666',
-          font: {
-            family: 'Fira Sans',
-          },
+          font: { family: 'Fira Sans' }
         },
       },
     },
