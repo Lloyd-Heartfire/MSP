@@ -38,28 +38,28 @@ const Charts = () => {
 
   return (
     <div className="charts-container">
-      {/* Graphique à barres horizontales */}
+      {/* Graphique 1 : Barres horizontales - Total Cases vs Total Deaths */}
       <div className="chart-wrapper chart-horizontal-bar">
-        <h3 className="chart-title">Cases by Region</h3>
+        <h3 className="chart-title">Total Cases vs Total Deaths by Region</h3>
         <HorizontalBarChart data={horizontalBar} theme={theme} />
       </div>
 
-      {/* Graphique en courbe */}
+      {/* Graphique 2 : Ligne - New Cases and New Deaths over time */}
       <div className="chart-wrapper chart-line">
-        <h3 className="chart-title">Cases Over Time</h3>
+        <h3 className="chart-title">New Cases and New Deaths Over Time</h3>
         <LineChartComponent data={lineChart} theme={theme} />
       </div>
 
-      {/* Graphique à barres groupées */}
+      {/* Graphique 3 : Barres verticales - Active Cases vs Recovered */}
       <div className="chart-wrapper chart-grouped-bar">
-        <h3 className="chart-title">Cases by Demographics</h3>
+        <h3 className="chart-title">Active Cases vs Recovered</h3>
         <GroupedBarChart data={groupedBar} theme={theme} />
       </div>
     </div>
   );
 };
 
-// Graphique à barres horizontales
+// Graphique 1 : Barres horizontales - Total Cases vs Total Deaths
 const HorizontalBarChart = ({ data, theme }) => {
   if (!data || data.length === 0) {
     return <div className="chart-no-data">No data available</div>;
@@ -70,14 +70,14 @@ const HorizontalBarChart = ({ data, theme }) => {
     datasets: [
       {
         label: 'Total Cases',
-        data: data.map(item => item.total) || [],
+        data: data.map(item => item.totalCases) || [],
         backgroundColor: theme === 'dark' ? '#019DD6' : '#017AB1',
         borderRadius: 4,
       },
       {
-        label: 'Deaths',
-        data: data.map(item => item.alcoholInvolved) || [],
-        backgroundColor: theme === 'dark' ? '#BC0707' : '#BC0707',
+        label: 'Total Deaths',
+        data: data.map(item => item.totalDeaths) || [],
+        backgroundColor: '#BC0707',
         borderRadius: 4,
       },
     ],
@@ -102,20 +102,33 @@ const HorizontalBarChart = ({ data, theme }) => {
         borderColor: '#017AB1',
         borderWidth: 2,
         padding: 12,
+        callbacks: {
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            label += new Intl.NumberFormat('en-US').format(context.parsed.x);
+            return label;
+          }
+        }
       },
     },
     scales: {
       x: {
         grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
         ticks: { 
-          color: theme === 'dark' ? '#B0B0B0' : '#666666',
-          font: { family: 'Fira Sans' }
+          color: theme === 'dark' ? '#FFFFFF' : '#000000',
+          font: { family: 'Fira Sans' },
+          callback: function(value) {
+            return new Intl.NumberFormat('en-US', { notation: 'compact' }).format(value);
+          }
         },
       },
       y: {
         grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
         ticks: { 
-          color: theme === 'dark' ? '#B0B0B0' : '#666666',
+          color: theme === 'dark' ? '#FFFFFF' : '#000000',
           font: { family: 'Fira Sans' }
         },
       },
@@ -129,18 +142,31 @@ const HorizontalBarChart = ({ data, theme }) => {
   );
 };
 
-// Graphique en courbe
+// Graphique 2 : Ligne - New Cases and New Deaths
 const LineChartComponent = ({ data, theme }) => {
-  if (!data || data.length === 0) {
+  if (!data || !data.periods || data.periods.length === 0) {
     return <div className="chart-no-data">No data available</div>;
   }
 
   const chartData = {
-    labels: data.map(item => item.month) || [],
+    labels: data.periods || [],
     datasets: [
       {
-        label: 'Cases',
-        data: data.map(item => item.cases) || [],
+        label: 'New Cases',
+        data: data.newCases || [],
+        borderColor: '#017AB1',
+        backgroundColor: 'rgba(1, 122, 177, 0.1)',
+        borderWidth: 3,
+        pointRadius: 5,
+        pointBackgroundColor: '#017AB1',
+        pointBorderColor: '#FFFFFF',
+        pointBorderWidth: 2,
+        tension: 0.4,
+        fill: true,
+      },
+      {
+        label: 'New Deaths',
+        data: data.newDeaths || [],
         borderColor: '#BC0707',
         backgroundColor: 'rgba(188, 7, 7, 0.1)',
         borderWidth: 3,
@@ -169,24 +195,37 @@ const LineChartComponent = ({ data, theme }) => {
         backgroundColor: theme === 'dark' ? '#002020' : '#FFFFFF',
         titleColor: theme === 'dark' ? '#FFFFFF' : '#000000',
         bodyColor: theme === 'dark' ? '#FFFFFF' : '#000000',
-        borderColor: '#BC0707',
+        borderColor: '#017AB1',
         borderWidth: 2,
         padding: 12,
+        callbacks: {
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            label += new Intl.NumberFormat('en-US').format(context.parsed.y);
+            return label;
+          }
+        }
       },
     },
     scales: {
       x: {
         grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
         ticks: { 
-          color: theme === 'dark' ? '#B0B0B0' : '#666666',
+          color: theme === 'dark' ? '#FFFFFF' : '#000000',
           font: { family: 'Fira Sans' }
         },
       },
       y: {
         grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
         ticks: { 
-          color: theme === 'dark' ? '#B0B0B0' : '#666666',
-          font: { family: 'Fira Sans' }
+          color: theme === 'dark' ? '#FFFFFF' : '#000000',
+          font: { family: 'Fira Sans' },
+          callback: function(value) {
+            return new Intl.NumberFormat('en-US', { notation: 'compact' }).format(value);
+          }
         },
       },
     },
@@ -199,7 +238,7 @@ const LineChartComponent = ({ data, theme }) => {
   );
 };
 
-// Graphique à barres groupées
+// Graphique 3 : Barres verticales - Active Cases vs Recovered
 const GroupedBarChart = ({ data, theme }) => {
   if (!data || data.length === 0) {
     return <div className="chart-no-data">No data available</div>;
@@ -209,21 +248,15 @@ const GroupedBarChart = ({ data, theme }) => {
     labels: data.map(item => item.category) || [],
     datasets: [
       {
-        label: 'Male',
-        data: data.map(item => item.male) || [],
-        backgroundColor: theme === 'dark' ? '#019DD6' : '#017AB1',
-        borderRadius: 4,
-      },
-      {
-        label: 'Female',
-        data: data.map(item => item.female) || [],
-        backgroundColor: '#066C06',
-        borderRadius: 4,
-      },
-      {
-        label: 'Total',
-        data: data.map(item => item.total) || [],
+        label: 'Active Cases',
+        data: data.map(item => item.activeCases) || [],
         backgroundColor: '#C98912',
+        borderRadius: 4,
+      },
+      {
+        label: 'Total Recovered',
+        data: data.map(item => item.totalRecovered) || [],
+        backgroundColor: '#066C06',
         borderRadius: 4,
       },
     ],
@@ -247,21 +280,36 @@ const GroupedBarChart = ({ data, theme }) => {
         borderColor: '#017AB1',
         borderWidth: 2,
         padding: 12,
+        callbacks: {
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            label += new Intl.NumberFormat('en-US').format(context.parsed.y);
+            return label;
+          }
+        }
       },
     },
     scales: {
       x: {
         grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
         ticks: { 
-          color: theme === 'dark' ? '#B0B0B0' : '#666666',
-          font: { family: 'Fira Sans' }
+          color: theme === 'dark' ? '#FFFFFF' : '#000000',
+          font: { family: 'Fira Sans' },
+          maxRotation: 45,
+          minRotation: 45
         },
       },
       y: {
         grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
         ticks: { 
-          color: theme === 'dark' ? '#B0B0B0' : '#666666',
-          font: { family: 'Fira Sans' }
+          color: theme === 'dark' ? '#FFFFFF' : '#000000',
+          font: { family: 'Fira Sans' },
+          callback: function(value) {
+            return new Intl.NumberFormat('en-US', { notation: 'compact' }).format(value);
+          }
         },
       },
     },

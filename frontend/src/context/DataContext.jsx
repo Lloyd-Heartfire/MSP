@@ -286,34 +286,35 @@ export const DataProvider = ({children}) => {
 
     // Build horizontal bar chart data
     const buildHorizontalBarData = (dataArray) => {
-        if (!dataArray || dataArray.length === 0) return [];
+    if (!dataArray || dataArray.length === 0) return [];
 
-        return dataArray.map(location => {
-            const totalCases = location.values.reduce((sum, v) => sum + (v.cases || 0), 0);
-            const totalDeaths = location.values.reduce((sum, v) => sum + (v.deaths || 0), 0);
-            
+    return dataArray.map(location => {
+        const lastPeriod = location.values[location.values.length - 1];
             return {
                 label: location.country || location.province_state || location.continent,
-                total: totalCases,
-                alcoholInvolved: totalDeaths
+                totalCases: lastPeriod?.cases || 0,
+                totalDeaths: lastPeriod?.deaths || 0
             };
-        });
+        }).slice(0, 15);
     };
 
     // Build line chart data
     const buildLineChartData = (abscisse, ordonne) => {
-        if (!abscisse || !ordonne || ordonne.length === 0) return [];
+        if (!abscisse || !ordonne || ordonne.length === 0) return { periods: [], newCases: [], newDeaths: [] };
 
-        const casesDataset = ordonne.find(ds => 
-            ds.label && (ds.label.includes('Cas') || ds.label.toLowerCase().includes('cases'))
+        const newCasesDataset = ordonne.find(ds => 
+            ds.label && (ds.label.toLowerCase().includes('nouveaux cas') || ds.label.toLowerCase().includes('new_cases'))
         );
-        
-        if (!casesDataset) return [];
 
-        return abscisse.map((month, index) => ({
-            month,
-            cases: casesDataset.data[index] || 0
-        }));
+        const newDeathsDataset = ordonne.find(ds => 
+            ds.label && (ds.label.toLowerCase().includes('nouveaux décès') || ds.label.toLowerCase().includes('new_deaths'))
+        );
+
+        return {
+            periods: abscisse,
+            newCases: newCasesDataset?.data || [],
+            newDeaths: newDeathsDataset?.data || []
+        };
     };
 
     // Build grouped bar chart data
@@ -321,17 +322,15 @@ export const DataProvider = ({children}) => {
         if (!dataArray || dataArray.length === 0) return [];
 
         return dataArray.map(location => {
-            const totalCases = location.values.reduce((sum, v) => sum + (v.cases || 0), 0);
-            const totalDeaths = location.values.reduce((sum, v) => sum + (v.deaths || 0), 0);
-            const totalRecovered = location.values.reduce((sum, v) => sum + (v.recovered || 0), 0);
+            const lastPeriod = location.values[location.values.length - 1];
+            const activeCases = (lastPeriod?.cases || 0) - (lastPeriod?.deaths || 0) - (lastPeriod?.recovered || 0);
 
             return {
                 category: location.country || location.province_state || location.continent,
-                male: Math.floor(totalCases * 0.52),
-                female: Math.floor(totalCases * 0.48),
-                total: totalCases
+                activeCases: activeCases > 0 ? activeCases : 0,
+                totalRecovered: lastPeriod?.recovered || 0
             };
-        });
+        }).slice(0, 10);
     };
 
     // DATA RECUPERATION
