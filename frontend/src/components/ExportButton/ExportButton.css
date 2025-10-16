@@ -25,6 +25,7 @@
   background-color: var(--button-secondary-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px var(--shadow);
+  border-color: var(--border-color);
 }
 
 .export-button:active:not(:disabled) {
