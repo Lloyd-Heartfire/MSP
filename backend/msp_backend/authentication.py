@@ -51,6 +51,11 @@ def login(request):
             return Response({
                 'access': str(refresh.access_token),
                 'refresh': str(refresh),
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                }
             })
         else:
             return Response({'error': 'invalide'}, status=status.HTTP_401_UNAUTHORIZED)

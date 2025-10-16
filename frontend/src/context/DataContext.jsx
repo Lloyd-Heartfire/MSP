@@ -63,12 +63,15 @@ export const DataProvider = ({children}) => {
     // Récupère le token depuis localStorage
     const getAuthHeaders = () => {
         const token = localStorage.getItem("who-token");
-        return token ? {
+        const headers = {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        } : {
-            'Content-Type': 'application/json'
         };
+        
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        return headers;
     };
 
     // FUNCTION FOR DROPDOWN OPTIONS
@@ -375,6 +378,7 @@ export const DataProvider = ({children}) => {
 
             const response = await fetch(`${API_BASE_URL}api/data/`, {
                 method: "POST",
+                headers: getAuthHeaders(),
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -430,6 +434,7 @@ export const DataProvider = ({children}) => {
 
             const response = await fetch(`${API_BASE_URL}api/data/download/`, {
                 method: "POST",
+                headers: getAuthHeaders(),
                 headers: {
                     "Content-Type": "application/json",
                 },

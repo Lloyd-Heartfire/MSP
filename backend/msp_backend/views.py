@@ -1,5 +1,5 @@
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Q, Sum, Avg
@@ -285,7 +285,7 @@ def get_admin2(request):  # Keep function name for backward compatibility
     tags=['Données']
 )
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 @throttle_classes([DataAPIThrottle, BurstRateThrottle])
 def get_pandemic_data(request):
     #endpoint pour récupérer data de pandémie
