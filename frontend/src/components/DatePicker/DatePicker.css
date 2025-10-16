@@ -214,3 +214,27 @@
     color: var(--text-muted);
     font-weight: var(--font-weight-medium);
 }
+
+/* Icône de calendrier personnalisée */
+.date-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.5);
+  cursor: pointer;
+  transition: filter var(--transition-fast);
+}
+
+.date-input:hover::-webkit-calendar-picker-indicator {
+  filter: invert(0.3);
+}
+
+/* Dark mode */
+.dark-mode .date-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.8) brightness(1.2);
+}
+
+.dark-mode .date-input:hover::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+  filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(186deg) brightness(94%) contrast(101%);
+}
