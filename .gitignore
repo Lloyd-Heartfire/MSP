@@ -61,3 +61,9 @@ backend/msp_backend/migrations/__pycache__/0003_pandemicdata_incident_rate_and_m
 backend/etl/covid
 backend/msp_backend/migrations/__pycache__/0003_pandemicdata_incident_rate_and_more.cpython-311.pyc
 backend/msp_backend/__pycache__/authentication.cpython-311.pyc
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
