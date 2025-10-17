@@ -36,6 +36,7 @@
 
 .dropdown-button:hover:not(:disabled) {
     background-color: var(--button-secondary-hover);
+    border-color: var(--border-color);
     transform: translateY(-2px);
 }
 

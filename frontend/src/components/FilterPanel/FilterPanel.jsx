@@ -1,5 +1,5 @@
-import React, {useState, useEffect} from "react";
-import {useData} from "../../context/DataContext";
+import React, { useState, useEffect } from "react";
+import { useData } from "../../context/DataContext";
 import "./FilterPanel.css";
 
 const FilterPanel = () => {
@@ -8,19 +8,11 @@ const FilterPanel = () => {
         updateFilters,
         availableOptions,
         loadingOptions,
-        fetchPandemics,
         fetchRegions,
     } = useData();
 
     // Local state for open dropdown
     const [openDropdown, setOpenDropdown] = useState(null);
-
-    // Load the pandemics
-    useEffect(() => {
-        if (availableOptions.pandemics.length === 0) {
-            fetchPandemics();
-        }
-    }, []);
 
     // Load the regions
     useEffect(() => {
@@ -35,26 +27,26 @@ const FilterPanel = () => {
     };
 
     // Select a who-region
-    const handleRegionSelect = (who_region) => {
-        updateFilters({who_region: who_region.id});
+    const handleRegionSelect = (region) => {
+        updateFilters({ who_region: region.id });
         setOpenDropdown(null);
     };
 
     // Select a country
     const handleCountrySelect = (country) => {
-        updateFilters({country: country.id});
+        updateFilters({ country: country.id });
         setOpenDropdown(null);
     };
 
-    // Select a province
-    const handleProvinceSelect = (province) => {
-        updateFilters({province: province.id});
+    // Select a province/state
+    const handleStateSelect = (state) => {
+        updateFilters({ state: state.id });
         setOpenDropdown(null);
     };
 
-    // Select a admin2
-    const handleAdmin2Select = (admin2) => {
-        updateFilters({admin2: admin2.id});
+    // Select a city
+    const handleCitySelect = (city) => {
+        updateFilters({ city: city.id });
         setOpenDropdown(null);
     };
 
@@ -64,32 +56,38 @@ const FilterPanel = () => {
         return selected?.name || `Select ${filterKey}`;
     };
 
+    // Vérifier si States est vide après chargement
+    const hasStates = availableOptions.states.length > 0;
+    const hasCities = availableOptions.city.length > 0;
+
     return (
         <div className="filter-panel">
             {/* Who-Region */}
             <Dropdown
-                label={filters.who_region ? getSelectedLabel("who_region", availableOptions.who_regions) : "Eastern Mediterranean Region"}
+                label={filters.who_region ? getSelectedLabel("who_region", availableOptions.who_regions) : "Select a region"}
                 isOpen={openDropdown === "who_region"}
                 onClick={() => handleDropdownClick("who_region")}
                 loading={loadingOptions.who_regions}
+                disabled={false}
             >
-                {availableOptions.who_regions.map((who_region) => (
+                {availableOptions.who_regions.map((region) => (
                     <DropdownItem
-                        key={who_region.id}
-                        onClick={() => handleRegionSelect(who_region)}
-                        selected={filters.who_region === who_region.id}
+                        key={region.id}
+                        onClick={() => handleRegionSelect(region)}
+                        selected={filters.who_region === region.id}
                     >
-                        {who_region.name}
+                        {region.name}
                     </DropdownItem>
                 ))}
             </Dropdown>
 
             {/* Country */}
             <Dropdown
-                label={filters.country ? getSelectedLabel("country", availableOptions.countries) : "Saint Vincent and the Grenadines"}
+                label={filters.country ? getSelectedLabel("country", availableOptions.countries) : "Select a country"}
                 isOpen={openDropdown === "country"}
                 onClick={() => handleDropdownClick("country")}
                 loading={loadingOptions.countries}
+                disabled={!filters.who_region}
             >
                 {availableOptions.countries.map((country) => (
                     <DropdownItem
@@ -102,38 +100,56 @@ const FilterPanel = () => {
                 ))}
             </Dropdown>
 
-            {/* Province/State */}
+            {/* Province/State - DÉSACTIVÉ si pas de country OU pas de states disponibles */}
             <Dropdown
-                label={filters.province ? getSelectedLabel("province", availableOptions.provinces) : "Saint Helena, Ascension and Tristan da Cunha"}
-                isOpen={openDropdown === "province"}
-                onClick={() => handleDropdownClick("province")}
-                loading={loadingOptions.provinces}
+                label={
+                    !filters.country 
+                        ? "Select a country first"
+                        : !hasStates && !loadingOptions.states
+                        ? "No states available"
+                        : filters.state 
+                        ? getSelectedLabel("state", availableOptions.states) 
+                        : "Select a state"
+                }
+                isOpen={openDropdown === "state"}
+                onClick={() => handleDropdownClick("state")}
+                loading={loadingOptions.states}
+                disabled={!filters.country || (!hasStates && !loadingOptions.states)}
             >
-                {availableOptions.provinces.map((province) => (
+                {availableOptions.states.map((state) => (
                     <DropdownItem
-                        key={province.id}
-                        onClick={() => handleProvinceSelect(province)}
-                        selected={filters.province === province.id}
+                        key={state.id}
+                        onClick={() => handleStateSelect(state)}
+                        selected={filters.state === state.id}
                     >
-                        {province.name}
+                        {state.name}
                     </DropdownItem>
                 ))}
             </Dropdown>
 
-            {/* Admin2 */}
+            {/* City - DÉSACTIVÉ si pas de state OU pas de cities disponibles */}
             <Dropdown
-                label={filters.admin2 ? getSelectedLabel("admin2", availableOptions.countries) : "Bristol Bay plus Lake and Peninsula"}
-                isOpen={openDropdown === "admin2"}
-                onClick={() => handleDropdownClick("admin2")}
-                loading={loadingOptions.countries}
+                label={
+                    !filters.state 
+                        ? "Select a state first"
+                        : !hasCities && !loadingOptions.city
+                        ? "No cities available"
+                        : filters.city 
+                        ? getSelectedLabel("city", availableOptions.city) 
+                        : "Select a city"
+                }
+                isOpen={openDropdown === "city"}
+                onClick={() => handleDropdownClick("city")}
+                loading={loadingOptions.city}
+                disabled={!filters.state || (!hasCities && !loadingOptions.city)}
             >
-                {availableOptions.countries.map((admin2) => (
+                {availableOptions.city.map((city) => (
                     <DropdownItem
-                        key={admin2.id}
-                        onClick={() => handleAdmin2Select(admin2)}
-                        selected={filters.admin2 === admin2.id}
+                        key={city.id}
+                        onClick={() => handleCitySelect(city)}
+                        selected={filters.city === city.id}
                     >
-                        {admin2.name}
+                        {city.name}
                     </DropdownItem>
                 ))}
             </Dropdown>
@@ -142,7 +158,7 @@ const FilterPanel = () => {
 };
 
 // Reusable Dropdown Component
-const Dropdown = ({label, isOpen, onClick, children, loading, disabled}) => {
+const Dropdown = ({ label, isOpen, onClick, children, loading, disabled }) => {
     return (
         <div className={`dropdown ${disabled ? "dropdown-disabled" : ""}`}>
             <button
@@ -161,7 +177,7 @@ const Dropdown = ({label, isOpen, onClick, children, loading, disabled}) => {
                 </svg>
             </button>
 
-            {isOpen && (
+            {isOpen && !disabled && (
                 <div className="dropdown-menu">
                     {loading ? (
                         <div className="dropdown-loading">
@@ -180,7 +196,7 @@ const Dropdown = ({label, isOpen, onClick, children, loading, disabled}) => {
 };
 
 // Dropdown item
-const DropdownItem = ({children, onClick, selected}) => {
+const DropdownItem = ({ children, onClick, selected }) => {
     return (
         <button
             className={`dropdown-item ${selected ? "item-selected" : ""}`}
@@ -188,7 +204,7 @@ const DropdownItem = ({children, onClick, selected}) => {
         >
             {children}
             {selected && (
-                <svg viewBow="0 0 24 24" width="16" height="16" fill="currentColor">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                     <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" fill="none" />
                 </svg>
             )}

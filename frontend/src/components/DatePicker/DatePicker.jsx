@@ -9,42 +9,77 @@ const DatePicker = () => {
   const minDate = new Date('2020-03-01');
   const maxDate = new Date('2022-03-01');
 
-  // Conversion date <-> timestamp
-  const dateToTimestamp = (date) => new Date(date).getTime();
-  const timestampToDate = (timestamp) => {
-    const date = new Date(timestamp);
+  // Calcul du nombre de mois entre deux dates
+  const getMonthsBetween = (date1, date2) => {
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
+    return (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
+  };
+
+  // Conversion mois -> date
+  const monthsToDate = (months) => {
+    const date = new Date(minDate);
+    date.setMonth(date.getMonth() + months);
     return date.toISOString().split('T')[0];
   };
 
-  // États locaux pour le slider
-  const [startTimestamp, setStartTimestamp] = useState(dateToTimestamp(filters.startDate));
-  const [endTimestamp, setEndTimestamp] = useState(dateToTimestamp(filters.endDate));
-
-  // Mise à jour des timestamps quand les filtres changent
-  useEffect(() => {
-    setStartTimestamp(dateToTimestamp(filters.startDate));
-    setEndTimestamp(dateToTimestamp(filters.endDate));
-  }, [filters.startDate, filters.endDate]);
-
-  // Gestion du changement de date de début
-  const handleStartChange = (e) => {
-    const newTimestamp = parseInt(e.target.value);
-    setStartTimestamp(newTimestamp);
-    updateFilters({ startDate: timestampToDate(newTimestamp) });
+  // Conversion date -> mois
+  const dateToMonths = (dateStr) => {
+    return getMonthsBetween(minDate, new Date(dateStr));
   };
 
-  // Gestion du changement de date de fin
+  // Nombre total de mois disponibles
+  const totalMonths = getMonthsBetween(minDate, maxDate);
+
+  // États locaux pour le slider (en mois)
+  const [startMonth, setStartMonth] = useState(dateToMonths(filters.startDate));
+  const [endMonth, setEndMonth] = useState(dateToMonths(filters.endDate));
+
+  // Mise à jour des mois quand les filtres changent
+  useEffect(() => {
+    setStartMonth(dateToMonths(filters.startDate));
+    setEndMonth(dateToMonths(filters.endDate));
+  }, [filters.startDate, filters.endDate]);
+
+  // Gestion du changement de date de début (slider)
+  const handleStartChange = (e) => {
+    const newMonth = parseInt(e.target.value);
+    
+    // Empêcher de dépasser la date de fin
+    if (newMonth <= endMonth) {
+      setStartMonth(newMonth);
+      updateFilters({ startDate: monthsToDate(newMonth) });
+    }
+  };
+
+  // Gestion du changement de date de fin (slider)
   const handleEndChange = (e) => {
-    const newTimestamp = parseInt(e.target.value);
-    setEndTimestamp(newTimestamp);
-    updateFilters({ endDate: timestampToDate(newTimestamp) });
+    const newMonth = parseInt(e.target.value);
+    
+    // Empêcher d'être avant la date de début
+    if (newMonth >= startMonth) {
+      setEndMonth(newMonth);
+      updateFilters({ endDate: monthsToDate(newMonth) });
+    }
   };
 
   // Gestion de l'input texte pour la date de début
   const handleStartInputChange = (e) => {
     const newDate = e.target.value;
     if (newDate) {
-      updateFilters({ startDate: newDate });
+      const newDateObj = new Date(newDate);
+      const endDateObj = new Date(filters.endDate);
+      
+      // Vérifier que la date de début <= date de fin
+      if (newDateObj <= endDateObj && newDateObj >= minDate && newDateObj <= maxDate) {
+        updateFilters({ startDate: newDate });
+      } else if (newDateObj > endDateObj) {
+        // Si date de début > date de fin, mettre la date de fin = date de début
+        updateFilters({ 
+          startDate: newDate,
+          endDate: newDate
+        });
+      }
     }
   };
 
@@ -52,20 +87,29 @@ const DatePicker = () => {
   const handleEndInputChange = (e) => {
     const newDate = e.target.value;
     if (newDate) {
-      updateFilters({ endDate: newDate });
+      const newDateObj = new Date(newDate);
+      const startDateObj = new Date(filters.startDate);
+      
+      // Vérifier que la date de fin >= date de début
+      if (newDateObj >= startDateObj && newDateObj >= minDate && newDateObj <= maxDate) {
+        updateFilters({ endDate: newDate });
+      } else if (newDateObj < startDateObj) {
+        // Si date de fin < date de début, mettre la date de début = date de fin
+        updateFilters({ 
+          startDate: newDate,
+          endDate: newDate
+        });
+      }
     }
   };
 
   // Calcul du pourcentage pour le style du slider
-  const minTimestamp = dateToTimestamp(minDate);
-  const maxTimestamp = dateToTimestamp(maxDate);
-  
-  const startPercent = ((startTimestamp - minTimestamp) / (maxTimestamp - minTimestamp)) * 100;
-  const endPercent = ((endTimestamp - minTimestamp) / (maxTimestamp - minTimestamp)) * 100;
+  const startPercent = (startMonth / totalMonths) * 100;
+  const endPercent = (endMonth / totalMonths) * 100;
 
   return (
     <div className="date-range-slider-container">
-      <h3 className="date-picker-title">{'Date picker'}</h3>
+      <h3 className="date-picker-title">Date picker</h3>
       
       {/* Inputs de dates */}
       <div className="date-inputs">
@@ -75,7 +119,7 @@ const DatePicker = () => {
             value={filters.startDate}
             onChange={handleStartInputChange}
             min={minDate.toISOString().split('T')[0]}
-            max={filters.endDate}
+            max={maxDate.toISOString().split('T')[0]}
             className="date-input"
           />
         </div>
@@ -87,8 +131,8 @@ const DatePicker = () => {
             type="date"
             value={filters.endDate}
             onChange={handleEndInputChange}
-            min={filters.startDate}
-            max={maxDate.toISOString().split('S')[0]}
+            min={minDate.toISOString().split('T')[0]}
+            max={maxDate.toISOString().split('T')[0]}
             className="date-input"
           />
         </div>
@@ -104,6 +148,13 @@ const DatePicker = () => {
 
         {/* Track du slider */}
         <div className="slider-track">
+          {/* Barres de graduation (25 barres pour 24 mois) */}
+          <div className="slider-graduations">
+            {Array.from({ length: 25 }).map((_, index) => (
+              <div key={index} className="graduation-mark" />
+            ))}
+          </div>
+
           {/* Zone sélectionnée */}
           <div 
             className="slider-range"
@@ -116,20 +167,22 @@ const DatePicker = () => {
           {/* Input pour la date de début */}
           <input
             type="range"
-            min={minTimestamp}
-            max={maxTimestamp}
-            value={startTimestamp}
+            min={0}
+            max={totalMonths}
+            step={1}
+            value={startMonth}
             onChange={handleStartChange}
             className="slider-input slider-input-start"
-            style={{ zIndex: startTimestamp > endTimestamp - (maxTimestamp - minTimestamp) * 0.05 ? 5 : 3 }}
+            style={{ zIndex: startMonth > endMonth - 1 ? 5 : 3 }}
           />
           
           {/* Input pour la date de fin */}
           <input
             type="range"
-            min={minTimestamp}
-            max={maxTimestamp}
-            value={endTimestamp}
+            min={0}
+            max={totalMonths}
+            step={1}
+            value={endMonth}
             onChange={handleEndChange}
             className="slider-input slider-input-end"
           />

@@ -1,19 +1,37 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import './Login.css';
 import Header from '../Header/Header.jsx';
 import Footer from '../Footer/Footer.jsx';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const handleSubmit = (submitEvent) => {
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const handleSubmit = async (submitEvent) => {
     submitEvent.preventDefault();
-    console.log('Login attempt:', { email, password });
+    setError('');
+    setLoading(true);
+
+    const result = await login(username, password);
+    
+    if (result.success) {
+      navigate('/');
+    } else {
+      setError(result.error || 'Invalid credentials');
+    }
+    
+    setLoading(false);
   };
 
   return (
     <div className="login-page">
-
       <Header />
 
       <main className="login-main">
@@ -22,12 +40,14 @@ const Login = () => {
           <form onSubmit={handleSubmit} className="login-form">
             <div className="form-group">
               <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(inputEvent) => setEmail(inputEvent.target.value)}
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(inputEvent) => setUsername(inputEvent.target.value)}
                 required
                 className="form-input"
+                disabled={loading}
+                autoComplete="username"
               />
             </div>
             <div className="form-group">
@@ -38,10 +58,15 @@ const Login = () => {
                 onChange={(inputEvent) => setPassword(inputEvent.target.value)}
                 required
                 className="form-input"
+                disabled={loading}
+                autoComplete="current-password"
               />
             </div>
-            <button type="submit" className="sign-in-btn">
-              Sign in
+            
+            {error && <p className="error-message">{error}</p>}
+            
+            <button type="submit" className="sign-in-btn" disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
           <div className="signup-link">
@@ -51,8 +76,8 @@ const Login = () => {
       </main>
 
       <Footer />
-      
     </div>
   );
 };
+
 export default Login;

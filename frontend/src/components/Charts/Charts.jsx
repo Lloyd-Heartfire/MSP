@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { useData } from '../../context/DataContext';
 import { useTheme } from '../../context/ThemeContext';
 import {
@@ -15,7 +15,6 @@ import {
 import { Bar, Line } from 'react-chartjs-2';
 import './Charts.css';
 
-// Enregistrement des composants Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -28,52 +27,74 @@ ChartJS.register(
 );
 
 const Charts = () => {
-  const { data, isValidated } = useData();
+  const { data, isValidated, perCapita } = useData();
   const { theme } = useTheme();
 
-  // Ne rien afficher si les données n'ont pas été validées
-  if (!isValidated) {
+  if (!isValidated || !data || !data.charts) {
     return null;
   }
 
+  const { horizontalBar, lineChart, groupedBar } = data.charts;
+
   return (
     <div className="charts-container">
-      {/* Graphique à barres horizontales */}
+      {/* Graphique 1 : Barres horizontales - Total Cases vs Total Deaths */}
       <div className="chart-wrapper chart-horizontal-bar">
-        <HorizontalBarChart data={data.charts.horizontalBar} theme={theme} />
+        <h3 className="chart-title">
+          Total Cases vs Total Deaths by Region {perCapita && '(per 100k)'}
+        </h3>
+        <HorizontalBarChart data={horizontalBar} theme={theme} perCapita={perCapita} />
       </div>
 
-      {/* Graphique en courbe */}
+      {/* Graphique 2 : Ligne - New Cases and New Deaths over time */}
       <div className="chart-wrapper chart-line">
-        <LineChartComponent data={data.charts.lineChart} theme={theme} />
+        <h3 className="chart-title">New Cases and New Deaths Over Time</h3>
+        <LineChartComponent data={lineChart} theme={theme} />
       </div>
 
-      {/* Graphique à barres groupées */}
+      {/* Graphique 3 : Barres verticales - Active Cases vs Recovered */}
       <div className="chart-wrapper chart-grouped-bar">
-        <GroupedBarChart data={data.charts.groupedBar} theme={theme} />
+        <h3 className="chart-title">
+          Active Cases vs Recovered {perCapita && '(per 100k)'}
+        </h3>
+        <GroupedBarChart data={groupedBar} theme={theme} perCapita={perCapita} />
       </div>
     </div>
   );
 };
 
-// Graphique à barres horizontales
-const HorizontalBarChart = ({ data, theme }) => {
+// Graphique 1 : Barres horizontales - Total Cases vs Total Deaths
+const HorizontalBarChart = ({ data, theme, perCapita }) => {
+  if (!data || data.length === 0) {
+    return <div className="chart-no-data">No data available</div>;
+  }
+
+  // Calculer les données selon le mode per capita
+  const processedData = data.map(item => {
+    if (perCapita && item.population > 0) {
+      return {
+        ...item,
+        totalCases: (item.totalCases / item.population) * 100000,
+        totalDeaths: (item.totalDeaths / item.population) * 100000
+      };
+    }
+    return item;
+  });
+
   const chartData = {
-    labels: data.map(item => item.name) || [],
+    labels: processedData.map(item => item.label) || [],
     datasets: [
       {
-        label: 'Total',
-        data: data.map(item => item.total) || [],
+        label: `Total Cases${perCapita ? ' (per 100k)' : ''}`,
+        data: processedData.map(item => item.totalCases) || [],
         backgroundColor: theme === 'dark' ? '#019DD6' : '#017AB1',
-        borderColor: '#017AB1',
-        borderWidth: 2,
+        borderRadius: 4,
       },
       {
-        label: 'Test Involved',
-        data: data.map(item => item.testInvolved) || [],
-        backgroundColor: theme === 'dark' ? '#D4F5F0' : '#ABFAF0',
-        borderColor: '#ABFAF0',
-        borderWidth: 2,
+        label: `Total Deaths${perCapita ? ' (per 100k)' : ''}`,
+        data: processedData.map(item => item.totalDeaths) || [],
+        backgroundColor: '#BC0707',
+        borderRadius: 4,
       },
     ],
   };
@@ -87,10 +108,7 @@ const HorizontalBarChart = ({ data, theme }) => {
         position: 'top',
         labels: {
           color: theme === 'dark' ? '#FFFFFF' : '#000000',
-          font: {
-            family: 'Fira Sans',
-            size: 12,
-          },
+          font: { family: 'Fira Sans', size: 12 },
         },
       },
       tooltip: {
@@ -100,36 +118,41 @@ const HorizontalBarChart = ({ data, theme }) => {
         borderColor: '#017AB1',
         borderWidth: 2,
         padding: 12,
-        bodyFont: {
-          family: 'Fira Sans',
-        },
-        titleFont: {
-          family: 'Fira Sans',
-          weight: 'bold',
-        },
+        callbacks: {
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            if (perCapita) {
+              label += context.parsed.x.toFixed(2);
+            } else {
+              label += new Intl.NumberFormat('en-US').format(context.parsed.x);
+            }
+            return label;
+          }
+        }
       },
     },
     scales: {
       x: {
-        grid: {
-          color: theme === 'dark' ? '#003838' : '#E8E8E8',
-        },
-        ticks: {
-          color: theme === 'dark' ? '#B0B0B0' : '#666666',
-          font: {
-            family: 'Fira Sans',
-          },
+        grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
+        ticks: { 
+          color: theme === 'dark' ? '#FFFFFF' : '#000000',
+          font: { family: 'Fira Sans' },
+          callback: function(value) {
+            if (perCapita) {
+              return value.toFixed(0);
+            }
+            return new Intl.NumberFormat('en-US', { notation: 'compact' }).format(value);
+          }
         },
       },
       y: {
-        grid: {
-          color: theme === 'dark' ? '#003838' : '#E8E8E8',
-        },
-        ticks: {
-          color: theme === 'dark' ? '#B0B0B0' : '#666666',
-          font: {
-            family: 'Fira Sans',
-          },
+        grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
+        ticks: { 
+          color: theme === 'dark' ? '#FFFFFF' : '#000000',
+          font: { family: 'Fira Sans' }
         },
       },
     },
@@ -142,14 +165,31 @@ const HorizontalBarChart = ({ data, theme }) => {
   );
 };
 
-// Graphique en courbe
+// Graphique 2 : Ligne - New Cases and New Deaths
 const LineChartComponent = ({ data, theme }) => {
+  if (!data || !data.periods || data.periods.length === 0) {
+    return <div className="chart-no-data">No data available</div>;
+  }
+
   const chartData = {
-    labels: data.map(item => item.date) || [],
+    labels: data.periods || [],
     datasets: [
       {
-        label: 'Cases',
-        data: data.map(item => item.cases) || [],
+        label: 'New Cases',
+        data: data.newCases || [],
+        borderColor: '#017AB1',
+        backgroundColor: 'rgba(1, 122, 177, 0.1)',
+        borderWidth: 3,
+        pointRadius: 5,
+        pointBackgroundColor: '#017AB1',
+        pointBorderColor: '#FFFFFF',
+        pointBorderWidth: 2,
+        tension: 0.4,
+        fill: true,
+      },
+      {
+        label: 'New Deaths',
+        data: data.newDeaths || [],
         borderColor: '#BC0707',
         backgroundColor: 'rgba(188, 7, 7, 0.1)',
         borderWidth: 3,
@@ -171,49 +211,44 @@ const LineChartComponent = ({ data, theme }) => {
         position: 'top',
         labels: {
           color: theme === 'dark' ? '#FFFFFF' : '#000000',
-          font: {
-            family: 'Fira Sans',
-            size: 12,
-          },
+          font: { family: 'Fira Sans', size: 12 },
         },
       },
       tooltip: {
         backgroundColor: theme === 'dark' ? '#002020' : '#FFFFFF',
         titleColor: theme === 'dark' ? '#FFFFFF' : '#000000',
         bodyColor: theme === 'dark' ? '#FFFFFF' : '#000000',
-        borderColor: '#BC0707',
+        borderColor: '#017AB1',
         borderWidth: 2,
         padding: 12,
-        bodyFont: {
-          family: 'Fira Sans',
-        },
-        titleFont: {
-          family: 'Fira Sans',
-          weight: 'bold',
-        },
+        callbacks: {
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            label += new Intl.NumberFormat('en-US').format(context.parsed.y);
+            return label;
+          }
+        }
       },
     },
     scales: {
       x: {
-        grid: {
-          color: theme === 'dark' ? '#003838' : '#E8E8E8',
-        },
-        ticks: {
-          color: theme === 'dark' ? '#B0B0B0' : '#666666',
-          font: {
-            family: 'Fira Sans',
-          },
+        grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
+        ticks: { 
+          color: theme === 'dark' ? '#FFFFFF' : '#000000',
+          font: { family: 'Fira Sans' }
         },
       },
       y: {
-        grid: {
-          color: theme === 'dark' ? '#003838' : '#E8E8E8',
-        },
-        ticks: {
-          color: theme === 'dark' ? '#B0B0B0' : '#666666',
-          font: {
-            family: 'Fira Sans',
-          },
+        grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
+        ticks: { 
+          color: theme === 'dark' ? '#FFFFFF' : '#000000',
+          font: { family: 'Fira Sans' },
+          callback: function(value) {
+            return new Intl.NumberFormat('en-US', { notation: 'compact' }).format(value);
+          }
         },
       },
     },
@@ -226,31 +261,38 @@ const LineChartComponent = ({ data, theme }) => {
   );
 };
 
-// Graphique à barres groupées
-const GroupedBarChart = ({ data, theme }) => {
+// Graphique 3 : Barres verticales - Active Cases vs Recovered
+const GroupedBarChart = ({ data, theme, perCapita }) => {
+  if (!data || data.length === 0) {
+    return <div className="chart-no-data">No data available</div>;
+  }
+
+  // Calculer les données selon le mode per capita
+  const processedData = data.map(item => {
+    if (perCapita && item.population > 0) {
+      return {
+        ...item,
+        activeCases: (item.activeCases / item.population) * 100000,
+        totalRecovered: (item.totalRecovered / item.population) * 100000
+      };
+    }
+    return item;
+  });
+
   const chartData = {
-    labels: data.map(item => item.category) || [],
+    labels: processedData.map(item => item.category) || [],
     datasets: [
       {
-        label: 'Group 1',
-        data: data.map(item => item.group1) || [],
-        backgroundColor: theme === 'dark' ? '#019DD6' : '#017AB1',
-        borderColor: '#017AB1',
-        borderWidth: 2,
-      },
-      {
-        label: 'Group 2',
-        data: data.map(item => item.group2) || [],
-        backgroundColor: '#066C06',
-        borderColor: '#066C06',
-        borderWidth: 2,
-      },
-      {
-        label: 'Group 3',
-        data: data.map(item => item.group3) || [],
+        label: `Active Cases${perCapita ? ' (per 100k)' : ''}`,
+        data: processedData.map(item => item.activeCases) || [],
         backgroundColor: '#C98912',
-        borderColor: '#C98912',
-        borderWidth: 2,
+        borderRadius: 4,
+      },
+      {
+        label: `Total Recovered${perCapita ? ' (per 100k)' : ''}`,
+        data: processedData.map(item => item.totalRecovered) || [],
+        backgroundColor: '#066C06',
+        borderRadius: 4,
       },
     ],
   };
@@ -263,10 +305,7 @@ const GroupedBarChart = ({ data, theme }) => {
         position: 'top',
         labels: {
           color: theme === 'dark' ? '#FFFFFF' : '#000000',
-          font: {
-            family: 'Fira Sans',
-            size: 12,
-          },
+          font: { family: 'Fira Sans', size: 12 },
         },
       },
       tooltip: {
@@ -276,36 +315,43 @@ const GroupedBarChart = ({ data, theme }) => {
         borderColor: '#017AB1',
         borderWidth: 2,
         padding: 12,
-        bodyFont: {
-          family: 'Fira Sans',
-        },
-        titleFont: {
-          family: 'Fira Sans',
-          weight: 'bold',
-        },
+        callbacks: {
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            if (perCapita) {
+              label += context.parsed.y.toFixed(2);
+            } else {
+              label += new Intl.NumberFormat('en-US').format(context.parsed.y);
+            }
+            return label;
+          }
+        }
       },
     },
     scales: {
       x: {
-        grid: {
-          color: theme === 'dark' ? '#003838' : '#E8E8E8',
-        },
-        ticks: {
-          color: theme === 'dark' ? '#B0B0B0' : '#666666',
-          font: {
-            family: 'Fira Sans',
-          },
+        grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
+        ticks: { 
+          color: theme === 'dark' ? '#FFFFFF' : '#000000',
+          font: { family: 'Fira Sans' },
+          maxRotation: 45,
+          minRotation: 45
         },
       },
       y: {
-        grid: {
-          color: theme === 'dark' ? '#003838' : '#E8E8E8',
-        },
-        ticks: {
-          color: theme === 'dark' ? '#B0B0B0' : '#666666',
-          font: {
-            family: 'Fira Sans',
-          },
+        grid: { color: theme === 'dark' ? '#003838' : '#E8E8E8' },
+        ticks: { 
+          color: theme === 'dark' ? '#FFFFFF' : '#000000',
+          font: { family: 'Fira Sans' },
+          callback: function(value) {
+            if (perCapita) {
+              return value.toFixed(0);
+            }
+            return new Intl.NumberFormat('en-US', { notation: 'compact' }).format(value);
+          }
         },
       },
     },

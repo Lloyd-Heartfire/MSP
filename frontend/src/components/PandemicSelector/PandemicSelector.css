@@ -1,0 +1,67 @@
+/* Pandemic Selector */
+.pandemic-selector {
+  position: relative;
+  min-width: 200px;
+}
+
+/* .pandemic-selector .dropdown-button {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--font-size-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  transition: all var(--transition-fast);
+} */
+
+/* .pandemic-selector .dropdown-button:hover {
+  background-color: var(--button-secondary-hover);
+  transform: translateY(-2px);
+}
+
+.pandemic-selector .dropdown-button:active {
+  transform: translateY(0);
+} */
+
+.pandemic-label {
+  flex: 1;
+  text-align: center;
+  font-family: 'Fira Sans', sans-serif;
+  font-weight: var(--font-weight-medium);
+}
+
+/* .pandemic-dropdown-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background-color: var(--who-blue);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.pandemic-dropdown-btn:hover {
+  background-color: #017AB1;
+  transform: scale(1.05);
+}
+
+.pandemic-dropdown-btn:active {
+  transform: scale(0.95);
+}
+
+.pandemic-dropdown-btn svg {
+  transition: transform var(--transition-fast);
+}
+
+*/

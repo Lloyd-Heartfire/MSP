@@ -35,29 +35,36 @@ export const AuthProvider = ({children}) => {
     };
 
     // Connexion
-    const login = async (email, password) => {
+    const login = async (username, password) => {
         try {
-            // To Do : Replace with API when we have it 
             const response = await fetch('http://localhost:8000/api/auth/login/', {
                 method: 'POST',
                 headers: {
                     "Content-Type": 'application/json',
                 },
-                body: JSON.stringify({email, password}),
+                body: JSON.stringify({username, password}),
             });
-
+        
             if (!response.ok) {
                 throw new Error("Identifiants incorrects");
             }
-
+        
             const data = await response.json();
-
-            // Token storage and user informations
-            setToken(data.token);
+            
+            console.log("=== LOGIN SUCCESS ===");
+            console.log("Response data:", data);
+        
+            // Token storage - VÉRIFIE que data.access existe
+            const accessToken = data.access;
+            console.log("Access token:", accessToken);
+            
+            setToken(accessToken);
             setUser(data.user);
-            localStorage.setItem("who-token", data.token);
+            localStorage.setItem("who-token", accessToken);
             localStorage.setItem("who-user", JSON.stringify(data.user));
-
+            
+            console.log("Token stocké:", localStorage.getItem("who-token"));
+        
             return {success: true};
         } catch (error) {
             console.error("Erreur de connexion:", error);

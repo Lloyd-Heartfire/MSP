@@ -17,6 +17,18 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+  user-select: none;
+}
+
+.logo-container:hover {
+  opacity: 0.85;
+}
+
+.logo-container:active {
+  opacity: 0.7;
+  transform: scale(0.98);
 }
 
 .org-text {
@@ -85,7 +97,87 @@
   transform: scale(1.08);
 }
 
-.language {
+.user-icon-wrapper {
+  position: relative;
+}
+
+.user-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  transition: transform var(--transition-fast);
+}
+
+.user-icon:hover {
+  transform: scale(1.1);
+}
+
+/* User dropdown menu */
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  background-color: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 24px var(--shadow);
+  min-width: 220px;
+  z-index: var(--z-dropdown);
+  animation: fadeIn var(--transition-fast);
+}
+
+.user-info {
+  padding: var(--spacing-md);
+}
+
+.user-name {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: var(--font-size-md);
+}
+
+.user-email {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.dropdown-divider {
+  border: none;
+  border-top: 1px solid var(--border-light);
+  margin: 0;
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: var(--spacing-md);
+  background: none;
+  border: none;
+  text-align: left;
+  color: var(--text-primary);
+  font-size: var(--font-size-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.dropdown-item:hover {
+  background-color: var(--button-secondary-hover);
+}
+
+.dropdown-item svg {
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
+
+/* .language {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
@@ -95,7 +187,7 @@
   color: var(--text-primary);
   cursor: pointer;
   transition: var(--transition-fast);
-}
+} */
 
 /* Responsive */
 @media (max-width: 767px) {

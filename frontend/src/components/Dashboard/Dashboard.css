@@ -49,7 +49,14 @@
 }
 
 .actions-row {
-  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.actions-row > *:last-child {
+  margin-left: auto;
 }
 
 /* Section des résultats */
